@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Profile Header -->
+    <div class="d-flex align-items-center mb-3">
+        {% if user.profile_picture %}
+            <img src="{{ user.profile_picture.url }}" class="rounded-circle" width="50" height="50" alt="Profile Picture">
+        {% endif %}
+        <h2 class="ms-3">Welcome, {{ user.first_name|default:user.email }}!</h2>
+    </div>
+
+    <p>This is your personalized fitness dashboard.</p>
+
+    <!-- Fitness Stats Section -->
+    <div class="card mb-3">
+        <div class="card-header">Your Fitness Stats</div>
+        <div class="card-body">
+            <p>Weight: {{ weight }}</p>
+            <p>Height: {{ height }}</p>
+            <p>BMI: {{ bmi }}</p>
+            <p>Activity Level: {{ activity_level }}</p>
+        </div>
+    </div>
+
+    <!-- Weekly Progress Section -->
+    <div class="card mb-3">
+        <div class="card-header">Weekly Progress</div>
+        <div class="card-body">
+            <p>Calories Burned: {{ weekly_progress.calories_burned|default:0 }}</p>
+            <p>Workouts Completed: {{ weekly_progress.workouts_completed|default:0 }}</p>
+        </div>
+    </div>
+
+    <!-- Upcoming Workout & Meal Plan Reminders -->
+    <div class="card mb-3">
+        <div class="card-header">Upcoming Workout & Meal Plan Reminders</div>
+        <div class="card-body">
+            {% if upcoming_reminders %}
+                <ul>
+                    {% for reminder in upcoming_reminders %}
+                        <li>{{ reminder.meal_name }} - {{ reminder.scheduled_time }}</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No upcoming reminders.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Update Profile Button -->
+    <a href="{% url 'profile' %}" class="btn btn-primary">Update Profile</a>
+</div>
+{% endblock %}

@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Register{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-lg p-4">
+            <h2 class="text-center">Create Account</h2>
+            <form id="registerForm" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label for="first_name" class="form-label">First Name</label>
+                    <input type="text" class="form-control" id="first_name" name="first_name" required>
+                </div>
+                <div class="mb-3">
+                    <label for="last_name" class="form-label">Last Name</label>
+                    <input type="text" class="form-control" id="last_name" name="last_name" required>
+                </div>
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="email" name="email" required>
+                </div>
+                <div class="mb-3">
+                    <label for="phone" class="form-label">Phone Number</label>
+                    <input type="tel" class="form-control" id="phone" name="phone" pattern="[0-9]{10}" required>
+                </div>
+                <div class="mb-3">
+                    <label for="password1" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="password1" name="password1" required>
+                </div>
+                <div class="mb-3">
+                    <label for="password2" class="form-label">Confirm Password</label>
+                    <input type="password" class="form-control" id="password2" name="password2" required>
+                </div>
+                <div class="mb-3">
+                    <label for="role" class="form-label">Role</label>
+                    <select class="form-control" id="role" name="role" onchange="toggleTrainerFields()">
+                        <option value="student">Student</option>
+                        <option value="trainer">Trainer</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+
+                <!-- Trainer-specific fields -->
+                <div id="trainerFields" class="mb-3" style="display: none;">
+                    <label for="certifications" class="form-label">Certifications</label>
+                    <input type="text" class="form-control" id="certifications" name="certifications">
+                    <label for="bio" class="form-label">Short Bio</label>
+                    <textarea class="form-control" id="bio" name="bio"></textarea>
+                </div>
+
+                <!-- Dietary Preferences -->
+                <div class="mb-3">
+                    <label for="dietary_preferences" class="form-label">Dietary Preferences</label>
+                    <select class="form-control" id="dietary_preferences" name="dietary_preferences">
+                        <option value="">Select...</option>
+                        <option value="vegetarian">Vegetarian</option>
+                        <option value="vegan">Vegan</option>
+                        <option value="paleo">Paleo</option>
+                        <option value="keto">Keto</option>
+                        <option value="gluten-free">Gluten-Free</option>
+                        <option value="none">No Preference</option>
+                    </select>
+                </div>
+
+                <!-- Fitness Goals -->
+                <div class="mb-3">
+                    <label for="fitness_goals" class="form-label">Fitness Goals</label>
+                    <select class="form-control" id="fitness_goals" name="fitness_goals">
+                        <option value="">Select...</option>
+                        <option value="weight_loss">Weight Loss</option>
+                        <option value="muscle_gain">Muscle Gain</option>
+                        <option value="endurance">Improve Endurance</option>
+                        <option value="flexibility">Increase Flexibility</option>
+                        <option value="overall_fitness">Overall Fitness</option>
+                    </select>
+                </div>
+
+                <!-- Allergies -->
+                <div class="mb-3">
+                    <label for="allergies" class="form-label">Allergies (comma-separated)</label>
+                    <input type="text" class="form-control" id="allergies" name="allergies" placeholder="e.g., Nuts, Gluten, Dairy">
+                </div>
+
+                <div class="mb-3">
+                    <label for="profile_picture" class="form-label">Profile Picture</label>
+                    <input type="file" class="form-control" id="profile_picture" name="profile_picture" accept="image/*">
+                </div>
+
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="terms" required>
+                    <label class="form-check-label" for="terms">I agree to the <a href="#">Terms & Conditions</a></label>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100">Sign Up</button>
+            </form>
+            <div id="registerMessage" class="mt-3 text-center"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Show trainer-specific fields only if "Trainer" role is selected
+function toggleTrainerFields() {
+    var role = document.getElementById("role").value;
+    var trainerFields = document.getElementById("trainerFields");
+    trainerFields.style.display = (role === "trainer") ? "block" : "none";
+}
+
+// Validate Password Match
+document.getElementById("registerForm").addEventListener("submit", function(event) {
+    var password1 = document.getElementById("password1").value;
+    var password2 = document.getElementById("password2").value;
+
+    if (password1 !== password2) {
+        event.preventDefault();
+        document.getElementById("registerMessage").innerHTML = "<div class='alert alert-danger'>Passwords do not match.</div>";
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header text-center">
+                    <h4>My Profile</h4>
+                </div>
+                <div class="card-body text-center">
+                    <!-- ✅ Profile Picture Section -->
+                    {% if user.profile_picture %}
+                        <img src="{{ user.profile_picture.url }}" alt="Profile Picture"
+                             class="rounded-circle mb-3" width="150" height="150">
+                    {% else %}
+                        <img src="{% static 'images/default-profile.png' %}" alt="Default Profile Picture"
+                             class="rounded-circle mb-3" width="150" height="150">
+                    {% endif %}
+
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <!-- ✅ Profile Picture Upload -->
+                        <div class="mb-3">
+                            <label for="profile_picture" class="form-label">Upload Profile Picture</label>
+                            <input type="file" class="form-control" id="profile_picture" name="profile_picture">
+                        </div>
+
+                        <!-- ✅ Email (Read-Only) -->
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" readonly>
+                        </div>
+
+                        <!-- ✅ First Name -->
+                        <div class="mb-3">
+                            <label for="first_name" class="form-label">First Name</label>
+                            <input type="text" class="form-control" id="first_name" name="first_name" value="{{ user.first_name }}">
+                        </div>
+
+                        <!-- ✅ Last Name -->
+                        <div class="mb-3">
+                            <label for="last_name" class="form-label">Last Name</label>
+                            <input type="text" class="form-control" id="last_name" name="last_name" value="{{ user.last_name }}">
+                        </div>
+
+                        <!-- ✅ Phone Number -->
+                        <div class="mb-3">
+                            <label for="phone" class="form-label">Phone Number</label>
+                            <input type="text" class="form-control" id="phone" name="phone" value="{{ user.phone }}">
+                        </div>
+
+                        <!-- ✅ Fitness Goals -->
+                        <div class="mb-3">
+                            <label for="fitness_goals" class="form-label">Fitness Goals</label>
+                            <textarea class="form-control" id="fitness_goals" name="fitness_goals">{{ user.fitness_goals }}</textarea>
+                        </div>
+
+                        <!-- ✅ Dietary Preferences -->
+                        <div class="mb-3">
+                            <label for="dietary_preferences" class="form-label">Dietary Preferences</label>
+                            <textarea class="form-control" id="dietary_preferences" name="dietary_preferences">{{ user.dietary_preferences }}</textarea>
+                        </div>
+
+                        <!-- ✅ Allergies -->
+                        <div class="mb-3">
+                            <label for="allergies" class="form-label">Allergies</label>
+                            <textarea class="form-control" id="allergies" name="allergies">{{ user.allergies }}</textarea>
+                        </div>
+
+                        <!-- ✅ Submit Button -->
+                        <button type="submit" class="btn btn-primary w-100">Update Profile</button>
+                    </form>
+                </div>
+                <div class="card-footer text-center">
+                    <a href="{% url 'dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
