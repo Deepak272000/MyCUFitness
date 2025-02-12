@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Assign Workouts</h2>
+    
+    {% if workouts %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Workout Title</th>
+                    <th>Duration (minutes)</th>
+                    <th>Calories Burned</th>
+                    <th>Assign</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for workout in workouts %}
+                <tr>
+                    <td>{{ workout.title }}</td>
+                    <td>{{ workout.duration }}</td>
+                    <td>{{ workout.calories_burned }}</td>
+                    <td>
+                        <a href="{% url 'assign_workout' workout.id %}" class="btn btn-primary">Assign</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No workouts available.</p>
+    {% endif %}
+</div>
+{% endblock %}

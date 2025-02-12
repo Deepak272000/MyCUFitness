@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center">{{ workout.title }}</h2>
+    <p class="text-center">Category: {{ workout.category }} | Difficulty: {{ workout.difficulty }}</p>
+
+    <h4>Exercises:</h4>
+    <ul>
+        {% for exercise in workout.exercises.all %}
+        <li><strong>{{ exercise.name }}</strong> - {{ exercise.reps }} reps, {{ exercise.sets }} sets</li>
+        {% endfor %}
+    </ul>
+
+    <form method="post" action="{% url 'track-workout' %}">
+        {% csrf_token %}
+        <input type="hidden" name="workout_id" value="{{ workout.id }}">
+        <button type="submit" class="btn btn-success">Log This Workout</button>
+    </form>
+</div>
+{% endblock %}
