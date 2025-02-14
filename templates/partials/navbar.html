@@ -1,18 +1,90 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-    <div class="container">
-        <a class="navbar-brand" href="{% url 'dashboard' %}">MyCUFitness</a>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand fw-bold" href="/">MyCUFitness</a>
+
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
         </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">
+
+        <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+            <ul class="navbar-nav">
                 {% if user.is_authenticated %}
-                    <li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'profile' %}">Profile</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'logout' %}">Logout</a></li>
+                    {% if user.role == "student" %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="/workout-plans/">Workout Plans</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/profile/">Profile</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/contact/">Contact</a>
+                        </li>
+                        <li class="nav-item">
+                            <form method="POST" action="/logout/" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="nav-link btn btn-outline-light border-0">Logout</button>
+                            </form>
+                        </li>
+
+                    {% elif user.role == "trainer" %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="/assign-workouts/">Assign Workout Plans</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/trainer-dashboard/">Trainer Dashboard</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/contact/">Contact</a>
+                        </li>
+                        <li class="nav-item">
+                            <form method="POST" action="/logout/" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="nav-link btn btn-outline-light border-0">Logout</button>
+                            </form>
+                        </li>
+                    {% endif %}
+
                 {% else %}
-                    <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Login</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'register' %}">Register</a></li>
+                    {% if request.path == '/' %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="/">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/about-us/">About Us</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/contact/">Contact</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/login/">Login</a>
+                        </li>
+                    {% elif request.path == '/about-us/' or request.path == '/contact/' %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="/">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/about-us/">About Us</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/contact/">Contact</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/login/">Login</a>
+                        </li>
+                    {% elif request.path == '/login/' %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="/">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/about-us/">About Us</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/contact/">Contact</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/login/">Login</a>
+                        </li>
+                    {% endif %}
                 {% endif %}
             </ul>
         </div>

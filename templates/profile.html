@@ -1,84 +1,158 @@
-{% extends 'base.html' %}
-{% load static %}
+{% extends "base.html" %}
+{% block title %}My Profile - MyCUFitness{% endblock %}
 
 {% block content %}
+{% if messages %}
+<div class="container mt-3">
+    {% for message in messages %}
+        <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<style>
+    .card { border-radius: 10px; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); }
+    .profile-pic { width: 120px; height: 120px; border-radius: 50%; border: 3px solid #007bff; object-fit: cover; display: block; margin: 0 auto; }
+    .profile-label { display: block; text-align: center; font-weight: bold; margin-top: 10px; color: #007bff; }
+    .profile-section { text-align: center; }
+    .form-control { border-radius: 6px; padding: 8px; }
+    .btn-primary { background-color: #007bff; border: none; padding: 10px 20px; }
+    .btn-primary:hover { background-color: #0056b3; }
+    .btn-secondary { padding: 10px 20px; }
+    select.form-control { height: 40px; }
+</style>
+
 <div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow">
-                <div class="card-header text-center">
-                    <h4>My Profile</h4>
+    <div class="card shadow-lg p-4">
+        <h2 class="text-center mb-4">My Profile</h2>
+
+        <!-- Profile Picture Section -->
+        <form method="POST" enctype="multipart/form-data" action="{% url 'profile' %}">
+            {% csrf_token %}
+            <div class="profile-section text-center">
+                {% if user_profile.profile_picture %}
+                    <img src="{{ user_profile.profile_picture.url }}" alt="Profile Picture" class="profile-pic">
+                {% else %}
+                    <img src="{{ MEDIA_URL }}profile_pics/default.jpg" alt="Default Profile Picture" class="profile-pic">
+                {% endif %}
+                <input type="file" name="profile_picture" class="form-control mt-2">
+                <button type="submit" class="btn btn-primary mt-2">Update Profile Picture</button>
+            </div>
+        </form>
+        <!-- Profile Form -->
+        <form method="POST" action="{% url 'profile' %}">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Email</label>
+                    <input type="email" class="form-control" value="{{ user.email }}" disabled>
                 </div>
-                <div class="card-body text-center">
-                    <!-- ✅ Profile Picture Section -->
-                    {% if user.profile_picture %}
-                        <img src="{{ user.profile_picture.url }}" alt="Profile Picture"
-                             class="rounded-circle mb-3" width="150" height="150">
-                    {% else %}
-                        <img src="{% static 'images/default-profile.png' %}" alt="Default Profile Picture"
-                             class="rounded-circle mb-3" width="150" height="150">
-                    {% endif %}
-
-                    <form method="post" enctype="multipart/form-data">
-                        {% csrf_token %}
-
-                        <!-- ✅ Profile Picture Upload -->
-                        <div class="mb-3">
-                            <label for="profile_picture" class="form-label">Upload Profile Picture</label>
-                            <input type="file" class="form-control" id="profile_picture" name="profile_picture">
-                        </div>
-
-                        <!-- ✅ Email (Read-Only) -->
-                        <div class="mb-3">
-                            <label for="email" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" readonly>
-                        </div>
-
-                        <!-- ✅ First Name -->
-                        <div class="mb-3">
-                            <label for="first_name" class="form-label">First Name</label>
-                            <input type="text" class="form-control" id="first_name" name="first_name" value="{{ user.first_name }}">
-                        </div>
-
-                        <!-- ✅ Last Name -->
-                        <div class="mb-3">
-                            <label for="last_name" class="form-label">Last Name</label>
-                            <input type="text" class="form-control" id="last_name" name="last_name" value="{{ user.last_name }}">
-                        </div>
-
-                        <!-- ✅ Phone Number -->
-                        <div class="mb-3">
-                            <label for="phone" class="form-label">Phone Number</label>
-                            <input type="text" class="form-control" id="phone" name="phone" value="{{ user.phone }}">
-                        </div>
-
-                        <!-- ✅ Fitness Goals -->
-                        <div class="mb-3">
-                            <label for="fitness_goals" class="form-label">Fitness Goals</label>
-                            <textarea class="form-control" id="fitness_goals" name="fitness_goals">{{ user.fitness_goals }}</textarea>
-                        </div>
-
-                        <!-- ✅ Dietary Preferences -->
-                        <div class="mb-3">
-                            <label for="dietary_preferences" class="form-label">Dietary Preferences</label>
-                            <textarea class="form-control" id="dietary_preferences" name="dietary_preferences">{{ user.dietary_preferences }}</textarea>
-                        </div>
-
-                        <!-- ✅ Allergies -->
-                        <div class="mb-3">
-                            <label for="allergies" class="form-label">Allergies</label>
-                            <textarea class="form-control" id="allergies" name="allergies">{{ user.allergies }}</textarea>
-                        </div>
-
-                        <!-- ✅ Submit Button -->
-                        <button type="submit" class="btn btn-primary w-100">Update Profile</button>
-                    </form>
-                </div>
-                <div class="card-footer text-center">
-                    <a href="{% url 'dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Phone Number</label>
+                    <input type="text" class="form-control" name="phone_number" value="{{ form.phone_number.value|default:'' }}">
                 </div>
             </div>
-        </div>
+
+            <div class="row mt-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">First Name</label>
+                    <input type="text" class="form-control" name="first_name" value="{{ form.first_name.value|default:'' }}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Last Name</label>
+                    <input type="text" class="form-control" name="last_name" value="{{ form.last_name.value|default:'' }}">
+                </div>
+            </div>
+
+            <div class="row mt-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Weight (kg)</label>
+                    <input type="number" class="form-control" name="weight" value="{{ form.weight.value|default:'' }}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Height (cm)</label>
+                    <input type="number" class="form-control" name="height" value="{{ form.height.value|default:'' }}">
+                </div>
+            </div>
+
+            <div class="row mt-3">
+                <div class="form-group">
+                    <label for="fitness-goals"><strong>Fitness Goals</strong></label>
+                    <select name="fitness_goals" id="fitness-goals" class="form-control">
+                        {% for choice in form.fitness_goals.field.choices %}
+                            <option value="{{ choice.0 }}" {% if form.fitness_goals.value == choice.0 %}selected{% endif %}>
+                                {{ choice.1 }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="dietary-preferences"><strong>Dietary Preferences</strong></label>
+                    <select name="dietary_preferences" id="dietary-preferences" class="form-control">
+                        {% for choice in form.dietary_preferences.field.choices %}
+                            <option value="{{ choice.0 }}" {% if form.dietary_preferences.value == choice.0 %}selected{% endif %}>
+                                {{ choice.1 }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="allergy-select"><strong>Allergies</strong></label>
+                    <select name="allergies" id="allergy-select" class="form-control">
+                        {% for choice in form.allergies.field.choices %}
+                            <option value="{{ choice.0 }}" {% if form.allergies.value == choice.0 %}selected{% endif %}>
+                                {{ choice.1 }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Hidden input field for "Other" allergy -->
+                <div class="form-group" id="other-allergy-container" style="display: none;">
+                    <label for="other-allergy-input"><strong>Specify Other Allergy</strong></label>
+                    <input type="text" name="other_allergy" id="other-allergy-input" class="form-control" placeholder="Type your allergy here">
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <button type="submit" class="btn btn-primary px-4">Update Profile</button>
+                <a href="{% url 'dashboard' %}" class="btn btn-secondary ms-2">Back to Dashboard</a>
+            </div>
+        </form>
     </div>
 </div>
+
+<!-- Include Select2.js for Better Dropdown Styling -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#allergy-select').select2({
+            placeholder: "Select allergies",
+            allowClear: true
+        });
+
+        const allergySelect = document.getElementById("allergy-select");
+        const otherAllergyContainer = document.getElementById("other-allergy-container");
+        const otherAllergyInput = document.getElementById("other-allergy-input");
+
+        function toggleOtherAllergy() {
+            if (allergySelect.value === "other") {
+                otherAllergyContainer.style.display = "block";
+            } else {
+                otherAllergyContainer.style.display = "none";
+                otherAllergyInput.value = "";
+            }
+        }
+
+        allergySelect.addEventListener("change", toggleOtherAllergy);
+        toggleOtherAllergy();  // Run once in case "Other" is preselected
+    });
+</script>
+
 {% endblock %}

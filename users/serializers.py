@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.tokens import RefreshToken
-from .models import User
+from .models import User, WorkoutProgress, MealPlanReminder, UserProfile
 from django.conf import settings
 from django.core.mail import send_mail
 from django.contrib.auth.tokens import default_token_generator
@@ -9,15 +9,44 @@ from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from rest_framework import generics
 #from .serializers import RegisterSerializer
+from .models import FitnessStats
 
 
-User = get_user_model()
-
+from django.contrib.auth import get_user_model
+#
+#
+# class UserSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = User
+#         fields = ['id', 'email', 'username', 'role', 'fitness_goals', 'dietary_preferences', 'allergies']
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'email', 'username', 'role', 'fitness_goals', 'dietary_preferences', 'allergies']
+        fields = [
+            "id", "email", "first_name", "last_name", "role", "fitness_goals",
+            "dietary_preferences", "allergies", "phone_number", "dob",
+            "profile_picture", "fitness_stats", "upcoming_reminders",
+            "weekly_progress", "is_active", "date_joined"
+        ]
+        read_only_fields = ["email", "date_joined", "is_active"]
 
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            "first_name", "last_name", "phone_number", "dob",
+            "fitness_goals", "dietary_preferences", "allergies",
+            "profile_picture"
+        ]
+
+class UserProfileUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = [
+            "first_name", "last_name", "phone_number", "dob",
+            "fitness_goals", "dietary_preferences", "allergies",
+            "profile_picture"
+        ]
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -70,3 +99,19 @@ class LoginSerializer(serializers.Serializer):
             token = RefreshToken.for_user(user)
             return {'token': str(token.access_token), 'refresh': str(token)}
         raise serializers.ValidationError("Invalid Credentials")
+
+class FitnessStatsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FitnessStats
+        fields = '__all__'
+
+
+class WorkoutProgressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WorkoutProgress
+        fields = '__all__'
+
+class MealPlanReminderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MealPlanReminder
+        fields = '__all__'

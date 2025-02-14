@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}About Us - MyCUFitness{% endblock %}
+
+{% block content %}
+<style>
+    .about-container {
+        text-align: center;
+        padding: 50px;
+    }
+    .about-banner {
+        width: 100%;
+        max-height: 400px;
+        object-fit: cover;
+    }
+    .about-content {
+        margin-top: 20px;
+    }
+</style>
+
+<div class="about-container">
+    <img src="/static/images/about-us-banner.jpg" alt="About MyCUFitness" class="about-banner">
+    <div class="about-content">
+        <h1>About MyCUFitness</h1>
+        <p>MyCUFitness is a personalized fitness platform designed for Concordia University students, faculty, and staff.</p>
+        <p>We provide structured workout programs, meal tracking, and interactive dashboards to help users achieve their fitness goals.</p>
+    </div>
+</div>
+{% endblock %}

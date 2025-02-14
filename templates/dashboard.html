@@ -1,40 +1,109 @@
-{% extends 'base.html' %}
+{% extends "base.html" %} {% load static %}
+{% block title %}Dashboard - MyCUFitness{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <!-- Profile Header -->
-    <div class="d-flex align-items-center mb-3">
-        {% if user.profile_picture %}
-            <img src="{{ user.profile_picture.url }}" class="rounded-circle" width="50" height="50" alt="Profile Picture">
-        {% endif %}
-        <h2 class="ms-3">Welcome, {{ user.first_name|default:user.email }}!</h2>
+
+    <div class="container mt-4">
+    {% if not user.email_verified %}
+        <div class="alert alert-warning text-center">
+            Your email is not verified. <a href='/email-verification/'>Click here</a> to verify.
+        </div>
+    {% endif %}
+    <div class="card mb-3">
+        <div class="card-header bg-dark text-white">Security</div>
+        <div class="card-body text-center">
+            <p><strong>Two-Factor Authentication:</strong> {% if user.two_factor_enabled %} Enabled {% else %} Disabled {% endif %}</p>
+            <a href="{% url 'enable_2fa' %}" class="btn btn-warning">Manage 2FA</a>
+        </div>
     </div>
 
-    <p>This is your personalized fitness dashboard.</p>
+    <!-- Profile Header -->
+    <div class="d-flex align-items-center mb-3">
+        <div class="profile-img-container">
+            {% if user_profile.profile_picture %}
+                <div style="width: 100px; height: 100px; overflow: hidden;">
+                <img src="{{ profile_picture }}" alt="Profile Picture">
+                </div>
+            {% else %}
+                <img src="{{ MEDIA_URL }}profile_pics/default.jpg" alt="Default Profile Picture">
+            {% endif %}
+        </div>
+        <h2 class="ms-3">Welcome, {{ user_profile.first_name|default:user.email }}!</h2>
+    </div>
 
-    <!-- Fitness Stats Section -->
+    <p>Your personalized fitness dashboard to track your progress and stay motivated.</p>
+
+    <!-- Personal Info -->
     <div class="card mb-3">
-        <div class="card-header">Your Fitness Stats</div>
+        <div class="card-header bg-secondary text-white">Your Personal Info</div>
         <div class="card-body">
-            <p>Weight: {{ weight }}</p>
-            <p>Height: {{ height }}</p>
-            <p>BMI: {{ bmi }}</p>
-            <p>Activity Level: {{ activity_level }}</p>
+            <p><strong>Email:</strong> {{ user.email }}</p>
+            <p><strong>Phone Number:</strong> {{ user_profile.phone_number|default:"Not Provided" }}</p>
+        </div>
+    </div>
+
+    <!-- Health Metrics -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-header bg-primary text-white">Your Health Metrics</div>
+                <div class="card-body">
+                    <p><strong>Weight:</strong> {{ user_profile.weight|default:"Not Set" }} kg</p>
+                    <p><strong>Height:</strong> {{ user_profile.height|default:"Not Set" }} cm</p>
+                    {% if user_profile.bmi %}
+                        <p><strong>BMI:</strong> {{ user_profile.bmi }}</p>
+                    {% else %}
+                        <p><strong>BMI:</strong> Not Calculated</p>
+                    {% endif %}
+                    <p><strong>Activity Level:</strong> {{ user_profile.activity_level|default:"Not set" }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fitness Goals -->
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-header bg-success text-white">Your Fitness Goals</div>
+                <div class="card-body">
+                    <p>{{ user_profile.fitness_goals|default:"No goal set" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dietary Preferences & Allergies -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-header bg-warning text-dark">Dietary Preferences</div>
+                <div class="card-body">
+                    <p>{{ user_profile.dietary_preferences|default:"Not specified" }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-header bg-danger text-white">Allergies</div>
+                <div class="card-body">
+                    <p>{{ user_profile.allergies|default:"No known allergies" }}</p>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Weekly Progress Section -->
     <div class="card mb-3">
-        <div class="card-header">Weekly Progress</div>
+        <div class="card-header bg-info text-white">Weekly Progress</div>
         <div class="card-body">
-            <p>Calories Burned: {{ weekly_progress.calories_burned|default:0 }}</p>
-            <p>Workouts Completed: {{ weekly_progress.workouts_completed|default:0 }}</p>
+            <p><strong>Calories Burned:</strong> {{ weekly_progress.calories_burned|default:0 }} kcal</p>
+            <p><strong>Workouts Completed:</strong> {{ weekly_progress.workouts_completed|default:0 }}</p>
         </div>
     </div>
 
     <!-- Upcoming Workout & Meal Plan Reminders -->
     <div class="card mb-3">
-        <div class="card-header">Upcoming Workout & Meal Plan Reminders</div>
+        <div class="card-header bg-dark text-white">Upcoming Workout & Meal Plan Reminders</div>
         <div class="card-body">
             {% if upcoming_reminders %}
                 <ul>
@@ -48,7 +117,10 @@
         </div>
     </div>
 
-    <!-- Update Profile Button -->
-    <a href="{% url 'profile' %}" class="btn btn-primary">Update Profile</a>
+    <!-- Buttons -->
+    <div class="d-flex justify-content-between">
+        <a href="{% url 'profile' %}" class="btn btn-primary">Update Profile</a>
+        <a href="{% url 'workout_plans' %}" class="btn btn-success">View Workout Plans</a>
+    </div>
 </div>
 {% endblock %}

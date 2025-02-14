@@ -1,23 +1,28 @@
-from django.urls import path, include
-from .views import RegisterView, LoginView, UserProfileView, VerifyEmailView, passwdResetView, Enable2FAView
-from rest_framework_simplejwt.views import TokenRefreshView
+from django.urls import path
+from . import views
 from .views import (
-    LogoutView, ConcordiaSSOLoginView
+    home, register_view, login_view, logout_view, dashboard_view,
+    profile_view, about_view, contact_view, workout_plans_view,
+    password_reset_request_view, password_reset_confirm_view, enable_2fa_view, api_user_profile, UserProfileView,
+    email_verification_view, resend_verification_email
 )
 
-
 urlpatterns = [
-
-    path('register/', RegisterView.as_view(), name='register'),
-    path('verify-email/', VerifyEmailView.as_view(), name='verify-email'),
-    path("password-reset/", passwdResetView.as_view(), name="password-reset"),
-    path("password-reset-confirm/<uidb64>/<token>/", passwdResetView.as_view(), name="password-reset-confirm"),
-    path('enable-2fa/', Enable2FAView.as_view(), name='enable-2fa'),
-    path('login/', LoginView.as_view(), name='login'),
-    path('profile/', UserProfileView.as_view(), name='profile'),
-    path('logout/', LogoutView.as_view(), name='logout'),
-    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('login/concordia/', ConcordiaSSOLoginView.as_view(), name='concordia_login'),
-    path('api/concordia-sso/', ConcordiaSSOLoginView.as_view(), name='concordia_sso'),
+    path("", home, name="home"),
+    path("register/", register_view, name="register"),
+    path("login/", login_view, name="login"),
+    path("logout/", logout_view, name="logout"),
+    path("dashboard/", dashboard_view, name="dashboard"),
+    path("profile/", profile_view, name="profile"),
+   # path("api/users/profile/", api_user_profile, name="api-user-profile"),
+    path("about-us/", about_view, name="about"),
+    path("contact/", contact_view, name="contact"),
+    path("password-reset/", password_reset_request_view, name="password_reset_request"),
+    path("password-reset-confirm/<uidb64>/<token>/", password_reset_confirm_view, name="password_reset_confirm"),
+    path('enable-2fa/', enable_2fa_view, name='enable_2fa'),
+    path('api/users/enable-2fa/', enable_2fa_view, name='enable_2fa'),
+    path('email-verification/', email_verification_view, name='email_verification'),
+    path("workout-plans/", workout_plans_view, name="workout_plans"),
+    path('resend-verification/', resend_verification_email, name='resend_verification_email'),
 
 ]

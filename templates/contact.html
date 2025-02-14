@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Contact - MyCUFitness{% endblock %}
+
+{% block content %}
+<style>
+    body, html {
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+    }
+    .contact-background {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        filter: brightness(50%);
+        z-index: -1;
+    }
+    .contact-container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 100vh;
+        position: relative;
+        z-index: 2;
+        color: #fff;
+        text-align: center;
+        padding: 0 10%;
+    }
+    .contact-info {
+        max-width: 40%;
+        text-align: left;
+    }
+    .contact-box {
+        width: 40%;
+        padding: 20px;
+        background: rgba(0, 0, 0, 0.85);
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+    }
+    .contact-box input, .contact-box textarea {
+        width: 100%;
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 5px;
+        border: none;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+    }
+    .contact-box input::placeholder, .contact-box textarea::placeholder {
+        color: #ddd;
+    }
+    .btn-submit {
+        width: 100%;
+        padding: 10px;
+        border-radius: 5px;
+        background-color: red;
+        color: white;
+        border: none;
+        cursor: pointer;
+    }
+</style>
+
+<!-- Background Image -->
+<img src="/static/images/contact-banner.jpg" alt="Contact Us" class="contact-background">
+
+<!-- Contact Section -->
+<div class="contact-container">
+    <div class="contact-info">
+        <h1>Get in Touch</h1>
+        <p>We'd love to hear from you! Whether you have a question about our platform, need assistance, or just want to share your feedback, feel free to reach out.</p>
+        <p>Email: codecrafters2025coen@gmail.com</p>
+    </div>
+    <div class="contact-box">
+        <form>
+            <input type="text" placeholder="Name" required>
+            <input type="email" placeholder="Email" required>
+            <textarea placeholder="Your message" required></textarea>
+            <button type="submit" class="btn-submit">Send</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
