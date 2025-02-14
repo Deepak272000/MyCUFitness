@@ -16,6 +16,7 @@ class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
             raise ValueError("Email is required to create a user. Please enter a valid email address.")
+        print(f"Creating user: {email}")
         email = self.normalize_email(email)
         extra_fields.setdefault("is_active", True)
         extra_fields.setdefault("is_staff", False)  #
@@ -23,6 +24,7 @@ class UserManager(BaseUserManager):
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
+        print(f"User {email} saved successfully.")  # Debugging line
         return user
 
     def create_superuser(self, email, password=None, **extra_fields):
