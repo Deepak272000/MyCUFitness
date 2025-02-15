@@ -14,9 +14,9 @@ environ.Env.read_env()
 
 config = dotenv_values(".env")
 
-SECRET_KEY = "your-secret-key"
+SECRET_KEY =env("SECRET_KEY")
 AUTH_USER_MODEL = 'users.User'
-DEBUG = True
+DEBUG = env.bool("DEBUG", default=False)
 
 ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
 
@@ -58,11 +58,11 @@ ROOT_URLCONF = "MyCUFitness.urls"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
-        "NAME": "mycufitness",
-        "USER": "root",
-        "PASSWORD": "12345",
-        "HOST": "localhost",
-        "PORT": "3306",
+        "NAME": env("DATABASE_NAME"),
+        "USER": env("DATABASE_USER"),
+        "PASSWORD": env("DATABASE_PASSWORD"),
+        "HOST": env("DATABASE_HOST"),
+        "PORT": env("DATABASE_PORT"),
     }
 }
 

@@ -5,6 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0dc1388d-a66f-4dab-a71b-49af34f48b66" name="Changes" comment="new changes">
+      <change beforePath="$PROJECT_DIR$/.env" beforeDir="false" afterPath="$PROJECT_DIR$/.env" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/MyCUFitness/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/MyCUFitness/settings.py" afterDir="false" />
     </list>
