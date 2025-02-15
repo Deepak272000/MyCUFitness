@@ -1,0 +1,717 @@
+Index: .env
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>GOOGLE_CLIENT_ID=994648410753-vnai2l56k7nfjb3fdso03k4j51etf1a4.apps.googleusercontent.com\r\nGOOGLE_CLIENT_SECRET=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\r\nEMAIL_HOST_USER=your_email@gmail.com\r\nEMAIL_HOST_PASSWORD=your_email_password\r\nEMAIL_HOST_PASSWORD = 'nfvf enbt ipqs bwxf'
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.env b/.env
+--- a/.env	(revision eeb4188af6750e419583650c36ff3f54efccbe60)
++++ b/.env	(date 1739481570239)
+@@ -1,5 +1,5 @@
+-GOOGLE_CLIENT_ID=994648410753-vnai2l56k7nfjb3fdso03k4j51etf1a4.apps.googleusercontent.com
+-GOOGLE_CLIENT_SECRET=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
+-EMAIL_HOST_USER=your_email@gmail.com
+-EMAIL_HOST_PASSWORD=your_email_password
+-EMAIL_HOST_PASSWORD = 'nfvf enbt ipqs bwxf'
+\ No newline at end of file
++GOOGLE_CLIENT_ID=994648410753-di6dg7j399fm0pdc2n82eh5gpe2ter5i.apps.googleusercontent.com
++GOOGLE_CLIENT_SECRET=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
++EMAIL_HOST_USER=codecrafters2025coen@gmail.com
++EMAIL_HOST_PASSWORD=softwareengineering
++EMAIL_HOST_PASSWORD = ruqm hknk hwjo axxp
+\ No newline at end of file
+Index: MyCUFitness/urls.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>\"\"\"\r\nURL configuration for MyCUFitness project.\r\n\r\nThe `urlpatterns` list routes URLs to views. For more information please see:\r\n    https://docs.djangoproject.com/en/5.1/topics/http/urls/\r\nExamples:\r\nFunction views\r\n    1. Add an import:  from my_app import views\r\n    2. Add a URL to urlpatterns:  path('', views.home, name='home')\r\nClass-based views\r\n    1. Add an import:  from other_app.views import Home\r\n    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')\r\nIncluding another URLconf\r\n    1. Import the include() function: from django.urls import include, path\r\n    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))\r\n\"\"\"\r\nfrom django.contrib import admin\r\nfrom django.urls import path, include\r\n\r\nurlpatterns = [\r\n        path('admin/', admin.site.urls),\r\n    path('api/', include('meal_plans.urls')),\r\n]\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/MyCUFitness/urls.py b/MyCUFitness/urls.py
+--- a/MyCUFitness/urls.py	(revision eeb4188af6750e419583650c36ff3f54efccbe60)
++++ b/MyCUFitness/urls.py	(date 1739558624146)
+@@ -1,23 +1,24 @@
+-"""
+-URL configuration for MyCUFitness project.
+-
+-The `urlpatterns` list routes URLs to views. For more information please see:
+-    https://docs.djangoproject.com/en/5.1/topics/http/urls/
+-Examples:
+-Function views
+-    1. Add an import:  from my_app import views
+-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
+-Class-based views
+-    1. Add an import:  from other_app.views import Home
+-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
+-Including another URLconf
+-    1. Import the include() function: from django.urls import include, path
+-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
+-"""
+ from django.contrib import admin
+ from django.urls import path, include
++from django.conf import settings
++from django.conf.urls.static import static
++from users.views import home, about_view, contact_view, login_view, dashboard_view, enable_2fa_view
+ 
+ urlpatterns = [
+-        path('admin/', admin.site.urls),
+-    path('api/', include('meal_plans.urls')),
++    path('admin/', admin.site.urls),  # Admin Panel
++    path('auth/', include('social_django.urls', namespace='social')),
++    path('', include('users.urls')),
++    path('', home, name='home'),  # Home Page
++    path("login/", login_view, name="login"),
++    path("dashboard/", dashboard_view, name="dashboard"),  # Fixed dashboard path
++    path('enable-2fa/', enable_2fa_view, name='enable_2fa'),
++    path('about-us/', about_view, name='about'),  # About Us Page
++    path('contact/', contact_view, name='contact'),  # Contact Page
++    path('api/users/', include('users.urls')),  # User Authentication & Profile
++    path('api/workouts/', include('workouts.urls')),  # Workout Management
++    path('api/auth/', include('django.contrib.auth.urls')),  # Django Built-in Auth
++    path('accounts/', include('allauth.urls')),  # Social Authentication
++
+ ]
++if settings.DEBUG:
++    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+Index: static/js/scripts.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>// Custom JavaScript for MyCUFitness\r\ndocument.addEventListener(\"DOMContentLoaded\", function() {\r\n    console.log(\"MyCUFitness Dashboard Loaded!\");\r\n});\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/static/js/scripts.js b/static/js/scripts.js
+--- a/static/js/scripts.js	(revision eeb4188af6750e419583650c36ff3f54efccbe60)
++++ b/static/js/scripts.js	(date 1739559150181)
+@@ -2,3 +2,34 @@
+ document.addEventListener("DOMContentLoaded", function() {
+     console.log("MyCUFitness Dashboard Loaded!");
+ });
++const token = localStorage.getItem("jwt_token");  // Retrieve stored token
++
++fetch("/api/users/profile/", {
++    method: "GET",
++    headers: {
++        "Authorization": `Bearer ${token}`,  // Attach token in header
++        "Content-Type": "application/json"
++    }
++})
++.then(response => response.json())
++.then(data => console.log(data))
++.catch(error => console.error("Error:", error));
++
++document.getElementById("enable2FAButton").addEventListener("click", function () {
++    fetch("/enable-2fa/", {   //  Use Correct URL
++        method: "POST",
++        headers: {
++            "Content-Type": "application/json",
++            "Authorization": "Bearer " + localStorage.getItem("token"),
++            "X-CSRFToken": "{{ csrf_token }}"
++        }
++    })
++    .then(response => response.json())
++    .then(data => {
++        if (data.qr_code) {
++            document.getElementById("qrCode").innerHTML = `<img src="${data.qr_code}" width="200" />`;
++        } else {
++            document.getElementById("message").innerText = "Failed to generate QR code.";
++        }
++    });
++});
+Index: .idea/MyCUFitness.iml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<module type=\"PYTHON_MODULE\" version=\"4\">\r\n  <component name=\"FacetManager\">\r\n    <facet type=\"django\" name=\"Django\">\r\n      <configuration>\r\n        <option name=\"rootFolder\" value=\"$MODULE_DIR$\" />\r\n        <option name=\"settingsModule\" value=\"MyCUFitness/settings.py\" />\r\n        <option name=\"manageScript\" value=\"$MODULE_DIR$/manage.py\" />\r\n        <option name=\"environment\" value=\"&lt;map/&gt;\" />\r\n        <option name=\"doNotUseTestRunner\" value=\"false\" />\r\n        <option name=\"trackFilePattern\" value=\"migrations\" />\r\n      </configuration>\r\n    </facet>\r\n  </component>\r\n  <component name=\"NewModuleRootManager\">\r\n    <content url=\"file://$MODULE_DIR$\">\r\n      <excludeFolder url=\"file://$MODULE_DIR$/.venv\" />\r\n    </content>\r\n    <orderEntry type=\"jdk\" jdkName=\"Python 3.13 (MyCUFitness) (2)\" jdkType=\"Python SDK\" />\r\n    <orderEntry type=\"sourceFolder\" forTests=\"false\" />\r\n  </component>\r\n  <component name=\"TemplatesService\">\r\n    <option name=\"TEMPLATE_CONFIGURATION\" value=\"Django\" />\r\n    <option name=\"TEMPLATE_FOLDERS\">\r\n      <list>\r\n        <option value=\"$MODULE_DIR$/../MyCUFitness\\templates\" />\r\n      </list>\r\n    </option>\r\n  </component>\r\n</module>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/MyCUFitness.iml b/.idea/MyCUFitness.iml
+--- a/.idea/MyCUFitness.iml	(revision eeb4188af6750e419583650c36ff3f54efccbe60)
++++ b/.idea/MyCUFitness.iml	(date 1739399622593)
+@@ -18,6 +18,9 @@
+     </content>
+     <orderEntry type="jdk" jdkName="Python 3.13 (MyCUFitness) (2)" jdkType="Python SDK" />
+     <orderEntry type="sourceFolder" forTests="false" />
++    <orderEntry type="library" name="select2" level="application" />
++    <orderEntry type="library" name="jquery-3.6.0" level="application" />
++    <orderEntry type="library" name="bootstrap" level="application" />
+   </component>
+   <component name="TemplatesService">
+     <option name="TEMPLATE_CONFIGURATION" value="Django" />
+Index: .idea/workspace.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"AutoImportSettings\">\r\n    <option name=\"autoReloadType\" value=\"SELECTIVE\" />\r\n  </component>\r\n  <component name=\"ChangeListManager\">\r\n    <list default=\"true\" id=\"0dc1388d-a66f-4dab-a71b-49af34f48b66\" name=\"Changes\" comment=\"\">\r\n      <change beforePath=\"$PROJECT_DIR$/.idea/workspace.xml\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/.idea/workspace.xml\" afterDir=\"false\" />\r\n    </list>\r\n    <option name=\"SHOW_DIALOG\" value=\"false\" />\r\n    <option name=\"HIGHLIGHT_CONFLICTS\" value=\"true\" />\r\n    <option name=\"HIGHLIGHT_NON_ACTIVE_CHANGELIST\" value=\"false\" />\r\n    <option name=\"LAST_RESOLUTION\" value=\"IGNORE\" />\r\n  </component>\r\n  <component name=\"FileTemplateManagerImpl\">\r\n    <option name=\"RECENT_TEMPLATES\">\r\n      <list>\r\n        <option value=\"Python Script\" />\r\n      </list>\r\n    </option>\r\n  </component>\r\n  <component name=\"Git.Settings\">\r\n    <option name=\"RECENT_GIT_ROOT_PATH\" value=\"$PROJECT_DIR$\" />\r\n  </component>\r\n  <component name=\"GitHubPullRequestSearchHistory\"><![CDATA[{\r\n  \"lastFilter\": {\r\n    \"state\": \"OPEN\",\r\n    \"assignee\": \"Deepak272000\"\r\n  }\r\n}]]></component>\r\n  <component name=\"GithubPullRequestsUISettings\"><![CDATA[{\r\n  \"selectedUrlAndAccountId\": {\r\n    \"url\": \"https://github.com/Deepak272000/MyCUFitness.git\",\r\n    \"accountId\": \"3d9691ad-71c8-4c1c-8025-5684ad2f070e\"\r\n  }\r\n}]]></component>\r\n  <component name=\"ProjectColorInfo\"><![CDATA[{\r\n  \"associatedIndex\": 3\r\n}]]></component>\r\n  <component name=\"ProjectId\" id=\"2sGccJbDttJSepFlf42eJflCrMH\" />\r\n  <component name=\"ProjectLevelVcsManager\" settingsEditedManually=\"true\" />\r\n  <component name=\"ProjectViewState\">\r\n    <option name=\"hideEmptyMiddlePackages\" value=\"true\" />\r\n    <option name=\"showLibraryContents\" value=\"true\" />\r\n  </component>\r\n  <component name=\"PropertiesComponent\"><![CDATA[{\r\n  \"keyToString\": {\r\n    \"RunOnceActivity.OpenDjangoStructureViewOnStart\": \"true\",\r\n    \"RunOnceActivity.ShowReadmeOnStart\": \"true\",\r\n    \"RunOnceActivity.pycharm.django.structure.promotion.once.per.project\": \"true\",\r\n    \"git-widget-placeholder\": \"main\",\r\n    \"node.js.detected.package.eslint\": \"true\",\r\n    \"node.js.detected.package.tslint\": \"true\",\r\n    \"node.js.selected.package.eslint\": \"(autodetect)\",\r\n    \"node.js.selected.package.tslint\": \"(autodetect)\",\r\n    \"nodejs_package_manager_path\": \"npm\",\r\n    \"vue.rearranger.settings.migration\": \"true\"\r\n  }\r\n}]]></component>\r\n  <component name=\"RunManager\">\r\n    <configuration name=\"MyCUFitness\" type=\"Python.DjangoServer\" factoryName=\"Django server\">\r\n      <module name=\"MyCUFitness\" />\r\n      <option name=\"ENV_FILES\" value=\"\" />\r\n      <option name=\"INTERPRETER_OPTIONS\" value=\"\" />\r\n      <option name=\"PARENT_ENVS\" value=\"true\" />\r\n      <envs>\r\n        <env name=\"PYTHONUNBUFFERED\" value=\"1\" />\r\n      </envs>\r\n      <option name=\"SDK_HOME\" value=\"\" />\r\n      <option name=\"WORKING_DIRECTORY\" value=\"\" />\r\n      <option name=\"IS_MODULE_SDK\" value=\"false\" />\r\n      <option name=\"ADD_CONTENT_ROOTS\" value=\"true\" />\r\n      <option name=\"ADD_SOURCE_ROOTS\" value=\"true\" />\r\n      <option name=\"launchJavascriptDebuger\" value=\"false\" />\r\n      <option name=\"port\" value=\"8000\" />\r\n      <option name=\"host\" value=\"\" />\r\n      <option name=\"additionalOptions\" value=\"\" />\r\n      <option name=\"browserUrl\" value=\"\" />\r\n      <option name=\"runTestServer\" value=\"false\" />\r\n      <option name=\"runNoReload\" value=\"false\" />\r\n      <option name=\"useCustomRunCommand\" value=\"false\" />\r\n      <option name=\"customRunCommand\" value=\"\" />\r\n      <method v=\"2\" />\r\n    </configuration>\r\n  </component>\r\n  <component name=\"SharedIndexes\">\r\n    <attachedChunks>\r\n      <set>\r\n        <option value=\"bundled-js-predefined-d6986cc7102b-deb605915726-JavaScript-PY-243.22562.220\" />\r\n        <option value=\"bundled-python-sdk-0fc6c617c4bd-9a18a617cbe4-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-243.22562.220\" />\r\n      </set>\r\n    </attachedChunks>\r\n  </component>\r\n  <component name=\"SpellCheckerSettings\" RuntimeDictionaries=\"0\" Folders=\"0\" CustomDictionaries=\"0\" DefaultDictionary=\"application-level\" UseSingleDictionary=\"true\" transferred=\"true\" />\r\n  <component name=\"TaskManager\">\r\n    <task active=\"true\" id=\"Default\" summary=\"Default task\">\r\n      <changelist id=\"0dc1388d-a66f-4dab-a71b-49af34f48b66\" name=\"Changes\" comment=\"\" />\r\n      <created>1738085429665</created>\r\n      <option name=\"number\" value=\"Default\" />\r\n      <option name=\"presentableId\" value=\"Default\" />\r\n      <updated>1738085429665</updated>\r\n      <workItem from=\"1738085430687\" duration=\"3508000\" />\r\n    </task>\r\n    <servers />\r\n  </component>\r\n  <component name=\"TypeScriptGeneratedFilesManager\">\r\n    <option name=\"version\" value=\"3\" />\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/workspace.xml b/.idea/workspace.xml
+--- a/.idea/workspace.xml	(revision eeb4188af6750e419583650c36ff3f54efccbe60)
++++ b/.idea/workspace.xml	(date 1739658432613)
+@@ -1,20 +1,33 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+ <project version="4">
++  <component name="AnalysisUIOptions">
++    <option name="SCOPE_TYPE" value="3" />
++  </component>
+   <component name="AutoImportSettings">
+     <option name="autoReloadType" value="SELECTIVE" />
+   </component>
+   <component name="ChangeListManager">
+     <list default="true" id="0dc1388d-a66f-4dab-a71b-49af34f48b66" name="Changes" comment="">
++      <change beforePath="$PROJECT_DIR$/.env" beforeDir="false" afterPath="$PROJECT_DIR$/.env" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/.idea/MyCUFitness.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/MyCUFitness.iml" afterDir="false" />
+       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MyCUFitness/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/MyCUFitness/settings.py" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/MyCUFitness/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/MyCUFitness/urls.py" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/static/css/styles.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/styles.css" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/static/js/scripts.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/scripts.js" afterDir="false" />
+     </list>
+     <option name="SHOW_DIALOG" value="false" />
+     <option name="HIGHLIGHT_CONFLICTS" value="true" />
+     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+     <option name="LAST_RESOLUTION" value="IGNORE" />
+   </component>
++  <component name="DjangoConsoleOptions" custom-start-script="import sys; print('Python %s on %s' % (sys.version, sys.platform))&#10;import django; print('Django %s' % django.get_version())&#10;sys.path.extend([WORKING_DIR_AND_PYTHON_PATHS])&#10;if 'setup' in dir(django): django.setup()&#10;import django_manage_shell; django_manage_shell.run(PROJECT_ROOT)">
++    <option name="myCustomStartScript" value="import sys; print('Python %s on %s' % (sys.version, sys.platform))&#10;import django; print('Django %s' % django.get_version())&#10;sys.path.extend([WORKING_DIR_AND_PYTHON_PATHS])&#10;if 'setup' in dir(django): django.setup()&#10;import django_manage_shell; django_manage_shell.run(PROJECT_ROOT)" />
++  </component>
+   <component name="FileTemplateManagerImpl">
+     <option name="RECENT_TEMPLATES">
+       <list>
++        <option value="HTML File" />
+         <option value="Python Script" />
+       </list>
+     </option>
+@@ -22,21 +35,24 @@
+   <component name="Git.Settings">
+     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+   </component>
+-  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+-  "lastFilter": {
+-    "state": "OPEN",
+-    "assignee": "Deepak272000"
++  <component name="GitHubPullRequestSearchHistory">{
++  &quot;lastFilter&quot;: {
++    &quot;state&quot;: &quot;OPEN&quot;,
++    &quot;assignee&quot;: &quot;Deepak272000&quot;
+   }
+-}]]></component>
+-  <component name="GithubPullRequestsUISettings"><![CDATA[{
+-  "selectedUrlAndAccountId": {
+-    "url": "https://github.com/Deepak272000/MyCUFitness.git",
+-    "accountId": "3d9691ad-71c8-4c1c-8025-5684ad2f070e"
++}</component>
++  <component name="GithubPullRequestsUISettings">{
++  &quot;selectedUrlAndAccountId&quot;: {
++    &quot;url&quot;: &quot;https://github.com/Deepak272000/MyCUFitness.git&quot;,
++    &quot;accountId&quot;: &quot;3d9691ad-71c8-4c1c-8025-5684ad2f070e&quot;
+   }
+-}]]></component>
+-  <component name="ProjectColorInfo"><![CDATA[{
+-  "associatedIndex": 3
+-}]]></component>
++}</component>
++  <component name="ProblemsViewState">
++    <option name="selectedTabId" value="CurrentFile" />
++  </component>
++  <component name="ProjectColorInfo">{
++  &quot;associatedIndex&quot;: 3
++}</component>
+   <component name="ProjectId" id="2sGccJbDttJSepFlf42eJflCrMH" />
+   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+   <component name="ProjectViewState">
+@@ -45,18 +61,30 @@
+   </component>
+   <component name="PropertiesComponent"><![CDATA[{
+   "keyToString": {
++    "DefaultHtmlFileTemplate": "HTML File",
+     "RunOnceActivity.OpenDjangoStructureViewOnStart": "true",
+     "RunOnceActivity.ShowReadmeOnStart": "true",
++    "RunOnceActivity.git.unshallow": "true",
+     "RunOnceActivity.pycharm.django.structure.promotion.once.per.project": "true",
+-    "git-widget-placeholder": "main",
++    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
++    "django.template.preview.state": "SHOW_EDITOR",
++    "git-widget-placeholder": "patch__users",
++    "last_opened_file_path": "C:/Users/Deepak Chavan/PycharmProjects/MyCUFitness/static/images",
+     "node.js.detected.package.eslint": "true",
+     "node.js.detected.package.tslint": "true",
+     "node.js.selected.package.eslint": "(autodetect)",
+     "node.js.selected.package.tslint": "(autodetect)",
+     "nodejs_package_manager_path": "npm",
++    "settings.editor.selected.configurable": "ml.llm.AIAssistantPromptsLibrary",
+     "vue.rearranger.settings.migration": "true"
+   }
+ }]]></component>
++  <component name="RecentsManager">
++    <key name="CopyFile.RECENT_KEYS">
++      <recent name="C:\Users\Deepak Chavan\PycharmProjects\MyCUFitness\static\images" />
++      <recent name="C:\Users\Deepak Chavan\PycharmProjects\MyCUFitness\static\videos" />
++    </key>
++  </component>
+   <component name="RunManager">
+     <configuration name="MyCUFitness" type="Python.DjangoServer" factoryName="Django server">
+       <module name="MyCUFitness" />
+@@ -100,10 +128,36 @@
+       <option name="presentableId" value="Default" />
+       <updated>1738085429665</updated>
+       <workItem from="1738085430687" duration="3508000" />
++      <workItem from="1739426443699" duration="30000" />
++      <workItem from="1739473550564" duration="3708000" />
++      <workItem from="1739477313281" duration="51905000" />
+     </task>
+     <servers />
+   </component>
+   <component name="TypeScriptGeneratedFilesManager">
+     <option name="version" value="3" />
+   </component>
++  <component name="Vcs.Log.Tabs.Properties">
++    <option name="TAB_STATES">
++      <map>
++        <entry key="MAIN">
++          <value>
++            <State>
++              <option name="FILTERS">
++                <map>
++                  <entry key="branch">
++                    <value>
++                      <list>
++                        <option value="patch_users" />
++                      </list>
++                    </value>
++                  </entry>
++                </map>
++              </option>
++            </State>
++          </value>
++        </entry>
++      </map>
++    </option>
++  </component>
+ </project>
+\ No newline at end of file
+Index: static/css/styles.css
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>@font-face {\r\n    font-family: 'Ubuntu';\r\n    src: url('../fonts/Ubuntu-Regular.woff2') format('woff2'),\r\n         url('../fonts/Ubuntu-Regular.woff') format('woff'),\r\n         url('../fonts/Ubuntu-Regular.ttf') format('truetype');\r\n    font-weight: normal;\r\n    font-style: normal;\r\n}\r\n\r\n@font-face {\r\n    font-family: 'Ubuntu';\r\n    src: url('../fonts/Ubuntu-Bold.woff2') format('woff2'),\r\n         url('../fonts/Ubuntu-Bold.woff') format('woff'),\r\n         url('../fonts/Ubuntu-Bold.ttf') format('truetype');\r\n    font-weight: bold;\r\n    font-style: normal;\r\n}\r\n\r\n@font-face {\r\n    font-family: 'Ubuntu';\r\n    src: url('../fonts/Ubuntu-Light.woff2') format('woff2'),\r\n         url('../fonts/Ubuntu-Light.woff') format('woff'),\r\n         url('../fonts/Ubuntu-Light.ttf') format('truetype');\r\n    font-weight: 300;\r\n    font-style: normal;\r\n}\r\n\r\n/* Apply the font to the entire website */\r\nbody {\r\n    font-family: 'Ubuntu', sans-serif;\r\n    background-color: #f4f4f4;\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/static/css/styles.css b/static/css/styles.css
+--- a/static/css/styles.css	(revision eeb4188af6750e419583650c36ff3f54efccbe60)
++++ b/static/css/styles.css	(date 1739519787327)
+@@ -1,32 +1,153 @@
+-@font-face {
+-    font-family: 'Ubuntu';
+-    src: url('../fonts/Ubuntu-Regular.woff2') format('woff2'),
+-         url('../fonts/Ubuntu-Regular.woff') format('woff'),
+-         url('../fonts/Ubuntu-Regular.ttf') format('truetype');
+-    font-weight: normal;
+-    font-style: normal;
++/* Fullscreen Background Video */
++.bg-video {
++    position: absolute;
++    top: 50%;
++    left: 50%;
++    transform: translate(-50%, -50%);
++    width: 100%;
++    height: 100%;
++    object-fit: cover;
++    z-index: -1;
++}
++
++/* Container Layout */
++.login-container {
++    position: relative;
++    width: 100%;
++    height: 100vh;
++    display: flex;
++    align-items: center;
++    justify-content: space-between;
++    padding: 50px;
++    color: white;
++}
++
++/* Left Info Section */
++.login-info {
++    max-width: 40%;
++    text-align: left;
++}
++
++.login-info h1 {
++    font-size: 2rem;
++    font-weight: bold;
++    margin-bottom: 10px;
++}
++
++.login-info p {
++    font-size: 1.2rem;
++    margin-bottom: 20px;
+ }
+ 
+-@font-face {
+-    font-family: 'Ubuntu';
+-    src: url('../fonts/Ubuntu-Bold.woff2') format('woff2'),
+-         url('../fonts/Ubuntu-Bold.woff') format('woff'),
+-         url('../fonts/Ubuntu-Bold.ttf') format('truetype');
++.btn-main {
++    display: inline-block;
++    padding: 12px 25px;
++    background: #d62828;
++    color: white;
+     font-weight: bold;
+-    font-style: normal;
++    border-radius: 5px;
++    text-decoration: none;
++    transition: 0.3s;
++}
++
++.btn-main:hover {
++    background: #a81e1e;
++}
++
++/* Right Login Form */
++.login-form {
++    max-width: 40%;
++    background: rgba(255, 255, 255, 0.9);
++    padding: 30px;
++    border-radius: 10px;
++    text-align: center;
+ }
+ 
+-@font-face {
+-    font-family: 'Ubuntu';
+-    src: url('../fonts/Ubuntu-Light.woff2') format('woff2'),
+-         url('../fonts/Ubuntu-Light.woff') format('woff'),
+-         url('../fonts/Ubuntu-Light.ttf') format('truetype');
+-    font-weight: 300;
+-    font-style: normal;
++.login-form h2 {
++    margin-bottom: 20px;
++    color: #333;
+ }
+ 
+-/* Apply the font to the entire website */
+-body {
+-    font-family: 'Ubuntu', sans-serif;
+-    background-color: #f4f4f4;
++.login-form input {
++    width: 100%;
++    padding: 10px;
++    margin: 10px 0;
++    border: 1px solid #ddd;
++    border-radius: 5px;
++}
++
++.btn-login {
++    width: 100%;
++    padding: 10px;
++    background: #007bff;
++    color: white;
++    font-weight: bold;
++    border-radius: 5px;
++    cursor: pointer;
++    margin-bottom: 10px;
++}
++
++.btn-google {
++    width: 100%;
++    padding: 10px;
++    background: #d62828;
++    color: white;
++    font-weight: bold;
++    border-radius: 5px;
++    cursor: pointer;
++}
++
++.forgot-password {
++    display: block;
++    margin-top: 10px;
++    color: #007bff;
++}
++/* Make navbar smaller on login page */
++/* Navbar styles */
++.navbar {
++    background: rgba(0, 0, 0, 0.9) !important;
++    padding: 12px 20px;
++}
++
++/* Make links more interactive */
++.navbar-nav .nav-link {
++    font-size: 16px;
++    padding: 8px 15px;
++    transition: 0.3s;
++}
++
++/* Add hover effect */
++.navbar-nav .nav-link:hover {
++    color: #ff4c4c !important;
++}
++
++/* Style logout button */
++.navbar .btn-danger {
++    color: white !important;
++    font-size: 16px;
++    transition: 0.3s;
++}
++
++.navbar .btn-danger:hover {
++    background: red !important;
++}
++
++.profile-pic {
++    width: 150px; /* Set max width */
++    height: 150px; /* Set max height */
++    object-fit: cover; /* Crop image to fit */
++    border-radius: 50%; /* Make it circular */
++    display: block;
++    margin: 0 auto; /* Center the image */
++}
++
++img.dashboard-profile-pic {
++    width: auto !important;
++    height: auto !important;
++    object-fit: contain;
++    border-radius: 0;
++}
++
++.dashboard-profile-pic {
++    object-fit: cover !important;
+ }
+Index: MyCUFitness/settings.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>\"\"\"\r\nDjango settings for MyCUFitness project.\r\n\r\nGenerated by 'django-admin startproject' using Django 5.1.5.\r\n\r\nFor more information on this file, see\r\nhttps://docs.djangoproject.com/en/5.1/topics/settings/\r\n\r\nFor the full list of settings and their values, see\r\nhttps://docs.djangoproject.com/en/5.1/ref/settings/\r\n\"\"\"\r\n\r\nfrom pathlib import Path\r\n\r\n# Build paths inside the project like this: BASE_DIR / 'subdir'.\r\nBASE_DIR = Path(__file__).resolve().parent.parent\r\n\r\n\r\n# Quick-start development settings - unsuitable for production\r\n# See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/\r\n\r\n# SECURITY WARNING: keep the secret key used in production secret!\r\nSECRET_KEY = 'django-insecure-nx&(!&s9g)ri2t5w170rr!os(^d&4z!_trsj3ux%r!(#oka5#8'\r\n\r\n# SECURITY WARNING: don't run with debug turned on in production!\r\nDEBUG = True\r\n\r\nALLOWED_HOSTS = []\r\n\r\n\r\n# Application definition\r\n\r\nINSTALLED_APPS = [\r\n    'django.contrib.admin',\r\n    'django.contrib.auth',\r\n    'django.contrib.contenttypes',\r\n    'django.contrib.sessions',\r\n    'django.contrib.messages',\r\n    'django.contrib.staticfiles',\r\n    'meal_plans',\r\n    'rest_framework',\r\n]\r\n\r\nMIDDLEWARE = [\r\n    'django.middleware.security.SecurityMiddleware',\r\n    'django.contrib.sessions.middleware.SessionMiddleware',\r\n    'django.middleware.common.CommonMiddleware',\r\n    'django.middleware.csrf.CsrfViewMiddleware',\r\n    'django.contrib.auth.middleware.AuthenticationMiddleware',\r\n    'django.contrib.messages.middleware.MessageMiddleware',\r\n    'django.middleware.clickjacking.XFrameOptionsMiddleware',\r\n]\r\n\r\nROOT_URLCONF = 'MyCUFitness.urls'\r\n\r\nTEMPLATES = [\r\n    {\r\n        'BACKEND': 'django.template.backends.django.DjangoTemplates',\r\n        'DIRS': [BASE_DIR / 'templates']\r\n        ,\r\n        'APP_DIRS': True,\r\n        'OPTIONS': {\r\n            'context_processors': [\r\n                'django.template.context_processors.debug',\r\n                'django.template.context_processors.request',\r\n                'django.contrib.auth.context_processors.auth',\r\n                'django.contrib.messages.context_processors.messages',\r\n            ],\r\n        },\r\n    },\r\n]\r\n\r\nWSGI_APPLICATION = 'MyCUFitness.wsgi.application'\r\n\r\n\r\n# Database\r\n# https://docs.djangoproject.com/en/5.1/ref/settings/#databases\r\n\r\nDATABASES = {\r\n    'default': {\r\n        'ENGINE': 'django.db.backends.postgresql',\r\n        'NAME': 'mycufitness',\r\n        'USER': 'postgres',\r\n        'PASSWORD': '12345',\r\n        'HOST': 'localhost',\r\n        'PORT': '5432',\r\n    }\r\n}\r\n\r\n\r\n# Password validation\r\n# https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators\r\n\r\nAUTH_PASSWORD_VALIDATORS = [\r\n    {\r\n        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',\r\n    },\r\n    {\r\n        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',\r\n    },\r\n    {\r\n        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',\r\n    },\r\n    {\r\n        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',\r\n    },\r\n]\r\n\r\n\r\n# Internationalization\r\n# https://docs.djangoproject.com/en/5.1/topics/i18n/\r\n\r\nLANGUAGE_CODE = 'en-us'\r\n\r\nTIME_ZONE = 'UTC'\r\n\r\nUSE_I18N = True\r\n\r\nUSE_TZ = True\r\n\r\n\r\n# Static files (CSS, JavaScript, Images)\r\n# https://docs.djangoproject.com/en/5.1/howto/static-files/\r\n\r\nSTATIC_URL = 'static/'\r\n\r\n# Default primary key field type\r\n# https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field\r\n\r\nDEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/MyCUFitness/settings.py b/MyCUFitness/settings.py
+--- a/MyCUFitness/settings.py	(revision eeb4188af6750e419583650c36ff3f54efccbe60)
++++ b/MyCUFitness/settings.py	(date 1739561222260)
+@@ -1,63 +1,92 @@
+-"""
+-Django settings for MyCUFitness project.
+-
+-Generated by 'django-admin startproject' using Django 5.1.5.
+-
+-For more information on this file, see
+-https://docs.djangoproject.com/en/5.1/topics/settings/
+-
+-For the full list of settings and their values, see
+-https://docs.djangoproject.com/en/5.1/ref/settings/
+-"""
+-
++import os
+ from pathlib import Path
++from django.conf import settings
++from django.conf.urls.static import static
++from django.contrib import staticfiles
++from dotenv import load_dotenv, dotenv_values
++import environ
+ 
+-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+ BASE_DIR = Path(__file__).resolve().parent.parent
++load_dotenv()  # Ensure the .env file is loaded
+ 
++env = environ.Env()
++environ.Env.read_env()
+ 
+-# Quick-start development settings - unsuitable for production
+-# See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
++config = dotenv_values(".env")
+ 
+-# SECURITY WARNING: keep the secret key used in production secret!
+-SECRET_KEY = 'django-insecure-nx&(!&s9g)ri2t5w170rr!os(^d&4z!_trsj3ux%r!(#oka5#8'
+-
+-# SECURITY WARNING: don't run with debug turned on in production!
++SECRET_KEY = "your-secret-key"
++AUTH_USER_MODEL = 'users.User'
+ DEBUG = True
+ 
+-ALLOWED_HOSTS = []
+-
+-
+-# Application definition
++ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
+ 
+ INSTALLED_APPS = [
+-    'django.contrib.admin',
+-    'django.contrib.auth',
+-    'django.contrib.contenttypes',
+-    'django.contrib.sessions',
+-    'django.contrib.messages',
+-    'django.contrib.staticfiles',
+-    'meal_plans',
+-    'rest_framework',
++    "django.contrib.admin",
++    "django.contrib.auth",
++    "django.contrib.contenttypes",
++    "django.contrib.sessions",
++    "django.contrib.messages",
++    "django.contrib.staticfiles",
++    "rest_framework",
++    "rest_framework_simplejwt",
++    "django_otp",
++    "django_otp.plugins.otp_totp",
++    'django.contrib.sites',
++    'allauth',
++    'allauth.account',
++    "allauth.socialaccount",
++    'allauth.socialaccount.providers.google',
++    'social_django',
++    'oauth2_provider',
++    "users",
++    "workouts",
+ ]
+ 
+ MIDDLEWARE = [
+-    'django.middleware.security.SecurityMiddleware',
+-    'django.contrib.sessions.middleware.SessionMiddleware',
+-    'django.middleware.common.CommonMiddleware',
+-    'django.middleware.csrf.CsrfViewMiddleware',
+-    'django.contrib.auth.middleware.AuthenticationMiddleware',
+-    'django.contrib.messages.middleware.MessageMiddleware',
+-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
++    "django.middleware.security.SecurityMiddleware",
++    "django.contrib.sessions.middleware.SessionMiddleware",
++    "django.middleware.common.CommonMiddleware",
++    "django.middleware.csrf.CsrfViewMiddleware",
++    "django.contrib.auth.middleware.AuthenticationMiddleware",
++    "django.contrib.messages.middleware.MessageMiddleware",
++    "django.middleware.clickjacking.XFrameOptionsMiddleware",
++    'allauth.account.middleware.AccountMiddleware',
++]
++
++ROOT_URLCONF = "MyCUFitness.urls"
++
++DATABASES = {
++    "default": {
++        "ENGINE": "django.db.backends.mysql",
++        "NAME": "mycufitness",
++        "USER": "root",
++        "PASSWORD": "12345",
++        "HOST": "localhost",
++        "PORT": "3306",
++    }
++}
++
++AUTHENTICATION_BACKENDS = [
++    "django.contrib.auth.backends.ModelBackend",
++    'social_core.backends.google.GoogleOAuth2',
+ ]
+ 
+-ROOT_URLCONF = 'MyCUFitness.urls'
++# JWT Authentication
++REST_FRAMEWORK = {
++    "DEFAULT_AUTHENTICATION_CLASSES": (
++        'rest_framework.authentication.SessionAuthentication',  # Django session login
++        'rest_framework.authentication.BasicAuthentication',
++        "rest_framework_simplejwt.authentication.JWTAuthentication",
++    ),
++    'DEFAULT_PERMISSION_CLASSES': (
++        'rest_framework.permissions.IsAuthenticated',  # Ensure authentication is required
++    ),
++}
+ 
+ TEMPLATES = [
+     {
+         'BACKEND': 'django.template.backends.django.DjangoTemplates',
+-        'DIRS': [BASE_DIR / 'templates']
+-        ,
++        "DIRS": [os.path.join(BASE_DIR, "templates")],  # Ensure you have this line
+         'APP_DIRS': True,
+         'OPTIONS': {
+             'context_processors': [
+@@ -69,62 +98,43 @@
+         },
+     },
+ ]
+-
+-WSGI_APPLICATION = 'MyCUFitness.wsgi.application'
+-
+-
+-# Database
+-# https://docs.djangoproject.com/en/5.1/ref/settings/#databases
++# Email Configuration
++EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
++EMAIL_HOST = "smtp.gmail.com"
++EMAIL_PORT = 587
++EMAIL_USE_TLS = True
++EMAIL_HOST_USER = "codecrafters2025coen@gmail.com"
++EMAIL_HOST_PASSWORD = "ruqm hknk hwjo axxp"
+ 
+-DATABASES = {
+-    'default': {
+-        'ENGINE': 'django.db.backends.postgresql',
+-        'NAME': 'mycufitness',
+-        'USER': 'postgres',
+-        'PASSWORD': '12345',
+-        'HOST': 'localhost',
+-        'PORT': '5432',
+-    }
+-}
+ 
+ 
+-# Password validation
+-# https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
++SITE_ID = 4
++LOGIN_REDIRECT_URL = "/dashboard/"
++LOGOUT_REDIRECT_URL = "/"
++ACCOUNT_LOGOUT_REDIRECT_URL = "/"
++LOGIN_URL = 'login'
+ 
+-AUTH_PASSWORD_VALIDATORS = [
+-    {
+-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+-    },
+-    {
+-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+-    },
+-    {
+-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+-    },
+-    {
+-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+-    },
+-]
++SOCIAL_AUTH_LOGIN_REDIRECT_URL = "/dashboard/"
++SOCIAL_AUTH_LOGIN_ERROR_URL = "/login/"
+ 
++SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = config["GOOGLE_CLIENT_ID"]
++SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = config["GOOGLE_CLIENT_SECRET"]
+ 
+-# Internationalization
+-# https://docs.djangoproject.com/en/5.1/topics/i18n/
++# OTP / 2FA Settings
++OTP_TOTP_ISSUER = "MyCUFitness"
+ 
+-LANGUAGE_CODE = 'en-us'
++SESSION_ENGINE = "django.contrib.sessions.backends.db"  # Ensure sessions are stored in DB
++SESSION_COOKIE_AGE = 86400  # Keep user logged in for 1 day
++SESSION_SAVE_EVERY_REQUEST = True  # Save session on every request
++SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Don't log out when browser is closed
+ 
+-TIME_ZONE = 'UTC'
++ACCOUNT_ADAPTER = "allauth.account.adapter.DefaultAccountAdapter"
++SOCIALACCOUNT_ADAPTER = "allauth.socialaccount.adapter.DefaultSocialAccountAdapter"
++SOCIALACCOUNT_AUTO_SIGNUP = True  # Ensure new users get created
+ 
+-USE_I18N = True
++MEDIA_URL = '/media/'
++MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+ 
+-USE_TZ = True
+ 
+-
+-# Static files (CSS, JavaScript, Images)
+-# https://docs.djangoproject.com/en/5.1/howto/static-files/
+-
+-STATIC_URL = 'static/'
+-
+-# Default primary key field type
+-# https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
+-
+-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
++STATIC_URL = "/static/"
++STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
