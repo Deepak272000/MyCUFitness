@@ -2,6 +2,8 @@ import pyotp
 import qrcode
 import io
 import base64
+
+from allauth.socialaccount.models import SocialAccount
 from django.http import JsonResponse
 from .serializers import UserProfileSerializer, UserProfileUpdateSerializer
 from django.contrib.auth.hashers import make_password
@@ -24,7 +26,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.conf import settings
-from oauth2_provider.models import AccessToken
+# from oauth2_provider.models import AccessToken
 from .models import User
 from .serializers import RegisterSerializer, LoginSerializer
 import uuid
@@ -38,16 +40,16 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 # ✅ API-Based Views (No Change)
-class ConcordiaSSOLoginView(generics.GenericAPIView):
-    def post(self, request):
-        token = request.data.get("token")
-        try:
-            access_token = AccessToken.objects.get(token=token)
-            user = authenticate(request, token=token)
-            if user:
-                return Response({'message': 'Authenticated', 'user': user.email})
-        except AccessToken.DoesNotExist:
-            return Response({'error': 'Invalid token'}, status=400)
+# class ConcordiaSSOLoginView(generics.GenericAPIView):
+#     def post(self, request):
+#         token = request.data.get("token")
+#         try:
+#             access_token = AccessToken.objects.get(token=token)
+#             user = authenticate(request, token=token)
+#             if user:
+#                 return Response({'message': 'Authenticated', 'user': user.email})
+#         except AccessToken.DoesNotExist:
+#             return Response({'error': 'Invalid token'}, status=400)
 
 
 class RegisterView(generics.CreateAPIView):
@@ -214,31 +216,70 @@ def dashboard_view(request):
 
     return render(request, "dashboard.html", context)
 
+
 def google_login(request):
     user = request.user
+
     if not user.is_authenticated:
         return redirect("login")
 
-    # Ensure profile exists for Google users
+    #  Getting user details from Google login
+    social_account = SocialAccount.objects.filter(user=user, provider="google").first()
+
+    if social_account:
+        extra_data = social_account.extra_data  # Extract Google account details
+
+        # Saving user first name, last name, and phone number
+        user.first_name = extra_data.get("given_name", user.first_name)
+        user.last_name = extra_data.get("family_name", user.last_name)
+        user.phone_number = extra_data.get("phone", user.phone_number)
+        user.save()
+
+    #  Ensuring profile exists for Google users
     user_profile, created = UserProfile.objects.get_or_create(user=user)
 
+    #  Log in the user
     login(request, user)
     messages.success(request, "Logged in successfully!")
+
+    #  Redirecting to dashboard
     return redirect("dashboard")
+
 
 @api_view(["GET", "PUT"])
 @permission_classes([IsAuthenticated])
 def api_user_profile(request):
     user = request.user
-    if request.method == "GET":
-        serializer = UserProfileSerializer(user)
-        return Response(serializer.data)
-    elif request.method == "PUT":
-        serializer = UserProfileUpdateSerializer(user, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=400)
+
+    if not user.is_authenticated:
+        return redirect("login")
+
+        # ✅ Get user details from Google login
+    social_account = SocialAccount.objects.filter(user=user, provider="google").first()
+
+    if social_account:
+        extra_data = social_account.extra_data  # Extract Google account details
+
+        #  Save user first name, last name, and phone number
+        user.first_name = extra_data.get("given_name", user.first_name)
+        user.last_name = extra_data.get("family_name", user.last_name)
+        user.phone_number = extra_data.get("phone", user.phone_number)
+        user.save()
+
+    #  Ensure profile exists for Google users
+    user_profile, created = UserProfile.objects.get_or_create(user=user)
+
+    #  If user has no password, redirect to password reset
+    if not user.has_usable_password():
+        messages.info(request, "Please set a password for manual login.")
+        return redirect("/accounts/password/reset/")
+
+    #  Log in the user
+    login(request, user)
+    messages.success(request, "Logged in successfully!")
+
+    # Redirect to dashboard
+    return redirect("dashboard")
 
 def calculate_bmi(self):
     if self.weight and self.height:
@@ -298,7 +339,7 @@ def register_view(request):
             allergies=allergies
         )
 
-        user.is_active = False
+        user.is_active = True
         user.verification_token = str(uuid.uuid4())
         user.save()
 
@@ -312,7 +353,6 @@ def register_view(request):
     return render(request, "auth/register.html")
 
 def password_reset_request_view(request):
-    """Render the password reset request page with a custom UI."""
     if request.method == "POST":
         email = request.POST.get("email")
         user = User.objects.filter(email=email).first()
@@ -322,19 +362,21 @@ def password_reset_request_view(request):
             uid = urlsafe_base64_encode(force_bytes(user.pk))
             reset_url = f"http://127.0.0.1:8000/password-reset-confirm/{uid}/{token}/"
 
+            # Send real email
             send_mail(
                 "Password Reset Request",
                 f"Click the link below to reset your password:\n{reset_url}",
-                settings.EMAIL_HOST_USER,
+                settings.EMAIL_HOST_USER,  # Ensure it's from settings
                 [email],
-                fail_silently=False
+                fail_silently=False,  # Keep False for debugging
             )
 
             messages.success(request, "Password reset link has been sent to your email.")
             return redirect("login")
 
-        messages.error(request, "User with this email not found.")
-        return redirect("password_reset_request")
+        else:
+            messages.error(request, "User with this email not found.")
+            return redirect("password_reset_request")
 
     return render(request, "auth/password_reset_request.html")  # Make sure the correct template is used
 
@@ -457,3 +499,6 @@ def contact_view(request):
     return render(request, "contact.html")
 def workout_plans_view(request):
     return render(request, "workout_plans.html")
+
+class CustomLoginView(LoginView):
+    template_name = "auth/login.html"

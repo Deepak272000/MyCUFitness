@@ -30,3 +30,9 @@ body {
     font-family: 'Ubuntu', sans-serif;
     background-color: #f4f4f4;
 }
+.allergies-card {
+    display: flex;
+    flex-direction: column;
+    max-height: 150px;
+    overflow-y: auto;
+}
