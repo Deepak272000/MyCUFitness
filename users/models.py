@@ -45,7 +45,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True,
                                         default='profile_pics/default-profile.png')
     two_factor_enabled = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
     verification_token = models.CharField(max_length=255, blank=True, null=True, unique=True)

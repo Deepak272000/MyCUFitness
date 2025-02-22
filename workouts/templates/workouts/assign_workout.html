@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Assign Workout to {{ client.first_name }}</h2>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="mb-3">
+            <label for="workout_id" class="form-label">Select Workout</label>
+            <select name="workout_id" class="form-control">
+                {% for workout in workouts %}
+                    <option value="{{ workout.id }}">{{ workout.title }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="duration_minutes" class="form-label">Duration (minutes)</label>
+            <input type="number" class="form-control" id="duration_minutes" name="duration_minutes" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="calories_burned" class="form-label">Calories Burned</label>
+            <input type="number" class="form-control" id="calories_burned" name="calories_burned" required>
+        </div>
+
+        <button type="submit" class="btn btn-success">Assign Workout</button>
+    </form>
+</div>
+{% endblock %}

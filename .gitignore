@@ -1,5 +1,4 @@
-# Ignore the workouts folder
-workouts/
+
 
 # Ignore environment files
 .env

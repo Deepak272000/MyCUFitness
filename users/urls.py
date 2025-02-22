@@ -1,3 +1,5 @@
+from django.contrib.auth.views import LoginView
+from django.contrib.auth import views as auth_views
 from django.urls import path
 from . import views
 from .views import (
@@ -18,6 +20,22 @@ urlpatterns = [
     path("about-us/", about_view, name="about"),
     path("contact/", contact_view, name="contact"),
     path("password-reset/", password_reset_request_view, name="password_reset_request"),
+    path(
+        "password-reset-complete/",
+        auth_views.PasswordResetCompleteView.as_view(
+            template_name="auth/password_reset_complete.html"
+        ),
+        name="password_reset_complete",
+    ),
+    path(
+    "password-reset-confirm/<uidb64>/<token>/",
+    auth_views.PasswordResetConfirmView.as_view(
+        template_name="auth/password_reset_confirm.html",
+        success_url="/login/"  # Redirect to login after password reset
+    ),
+    name="password_reset_confirm",
+),
+    path("auth/login/", LoginView.as_view(template_name="auth/login.html"), name="login"),
     path("password-reset-confirm/<uidb64>/<token>/", password_reset_confirm_view, name="password_reset_confirm"),
     path('enable-2fa/', enable_2fa_view, name='enable_2fa'),
     path('api/users/enable-2fa/', enable_2fa_view, name='enable_2fa'),

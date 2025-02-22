@@ -57,4 +57,3 @@ class ProfileUpdateForm(forms.ModelForm):
 
         profile_picture = forms.ImageField(required=False)
 
-

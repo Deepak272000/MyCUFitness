@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Assign Clients</h2>
+    <form method="POST">
+        {% csrf_token %}
+        <label for="clients">Select Clients:</label>
+        <select name="clients" id="clients" multiple class="form-control">
+            {% for client in available_clients %}
+                <option value="{{ client.id }}">{{ client.username }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-success mt-3">Assign Clients</button>
+    </form>
+</div>
+{% endblock %}
