@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% load static %}
+
 {% load socialaccount %}
 
 {% block title %}Login - MyCUFitness{% endblock %}
@@ -126,7 +128,7 @@
 
 
                     <p class="text-center mt-3">
-                        Don't have an account? <a href='/register/' class="text-light">Register</a>
+                        Don't have an account? <a href="{% url 'register' %}" class="text-light">Register</a>
                     </p>
                 </form>
             </div>
