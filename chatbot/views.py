@@ -1,91 +1,112 @@
-import nltk
-from django.contrib.auth.decorators import login_required
-from django.core.files.storage import FileSystemStorage
-from django.http import JsonResponse
-from nltk.tokenize import word_tokenize
-from meal_plans.models import MealPlan
+from rest_framework.decorators import permission_classes
+from rest_framework.permissions import IsAuthenticated
+from meal_plans.models import Meal, MealPlan
 from workouts.models import Workout
-import logging
+from chatbot.models import FitnessProgress
+import matplotlib.pyplot as plt
+import io
+import base64
+from rest_framework.response import Response
+from django.contrib.auth.decorators import login_required
+from rest_framework.decorators import api_view
 
-nltk.download('punkt')
 
-logger = logging.getLogger(__name__)
+from django.db.models import Q
 
-# **Expanded General Responses for More Natural Chat**
-general_responses = {
-    "hello": "Hello! How are you today?",
-    "hi": "Hi there! What can I help you with?",
-    "how are you": "I'm great! Here to help with fitness. How about you?",
-    "bye": "Goodbye! Stay strong and keep working towards your goals!",
-    "thank you": "You're welcome! Keep pushing forward!",
-    "who are you": "I'm your fitness assistant! I can help with workouts, diet, and motivation.",
-    "what can you do": "I can provide workout suggestions, meal plans, and fitness advice!",
-}
+user_context = {}
 
-# **Fitness-related Keywords**
-workout_keywords = {"workout", "gym", "exercise", "training", "fitness", "lifting", "cardio"}
-meal_keywords = {"meal", "diet", "nutrition", "food", "calories", "eating", "protein", "healthy"}
+@api_view(['POST'])
+def chatbot_response(request):
+    user_id = request.user.id  # Identify user
+    user_message = request.data.get("message", "").lower()
 
-# **Memory to Maintain Conversation Flow (User Context)**
-conversation_state = {}  # {user_id: {"topic": "meal" or "workout", "detail": None}}
+    # Initialize user session if not exists
+    if user_id not in user_context:
+        user_context[user_id] = {"step": "ask_goal"}
+
+    # Step 1: Ask for fitness goal
+    if user_context[user_id]["step"] == "ask_goal":
+        user_context[user_id]["step"] = "waiting_for_goal"
+        return Response({"response": "Hi! I can help you with meal and workout plans. What's your fitness goal? (e.g., weight loss, muscle gain, maintain fitness)"})
+
+    # Step 2: Capture fitness goal and ask dietary preferences
+    if user_context[user_id]["step"] == "waiting_for_goal":
+        user_context[user_id]["goal"] = user_message
+        user_context[user_id]["step"] = "waiting_for_diet"
+        return Response({"response": "Got it! Do you have any dietary preferences? (e.g., vegetarian, keto, no preference)"})
+
+    # Step 3: Capture dietary preference and provide meal plan
+    if user_context[user_id]["step"] == "waiting_for_diet":
+        user_context[user_id]["diet"] = user_message
+        user_context[user_id]["step"] = "meal_suggestion"
+
+        # Fetch meal plans based on user preference
+        meal_plans = MealPlan.objects.filter(category=user_context[user_id]["diet"])
+        if not meal_plans.exists():
+            return Response({"response": "Sorry, no meal plans found for your preference."})
+
+        meal_suggestions = "\n".join([f"- {meal.name}" for meal in meal_plans])
+        return Response({"response": f"Thanks! Based on your goal and preference, here are some meal options:\n{meal_suggestions}"})
+
+    return Response({"response": "How can I assist you with your fitness today?"})
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])  # Only logged-in users can log progress
+def log_fitness_progress(request):
+    """Allows users to log daily fitness progress."""
+    user = request.user
+    weight = request.data.get("weight")
+    calories_burned = request.data.get("calories_burned")
+    workouts_completed = request.data.get("workouts_completed")
+
+    progress = FitnessProgress.objects.create(
+        user=user,
+        weight=weight,
+        calories_burned=calories_burned,
+        workouts_completed=workouts_completed
+    )
+
+    adjustment = progress.adjust_fitness_plan()
+
+    return Response({
+        "message": "Progress logged successfully!",
+        "adjustment": adjustment
+    })
+
+
 
 @login_required
-def chatbot_response(request):
-    if request.method == "POST":
-        user_input = request.POST.get("user_input", "").strip().lower()
-        user_id = request.user.id  # Unique identifier for tracking conversation state
-        logger.info(f"User input: {user_input}")
+def get_progress_chart(request):
+    """Generates a progress chart for the user."""
+    user = request.user
+    progress_data = FitnessProgress.objects.filter(user=user).order_by("date")
 
-        # **Tokenize input**
-        tokens = set(word_tokenize(user_input))
+    if not progress_data.exists():
+        return Response({"error": "No progress data found."}, status=404)
 
-        # **Step 1: Handle Basic Greetings & Responses**
-        for phrase, reply in general_responses.items():
-            if phrase in user_input:
-                return JsonResponse({"response": reply})
+    dates = [p.date for p in progress_data]
+    weights = [p.weight for p in progress_data if p.weight is not None]
+    calories = [p.calories_burned for p in progress_data if p.calories_burned is not None]
+    workouts = [p.workouts_completed for p in progress_data if p.workouts_completed is not None]
 
-        # **Step 2: Context Awareness - Follow Up on Previous Conversation**
-        if user_id in conversation_state:
-            last_topic = conversation_state[user_id]["topic"]
+    plt.figure(figsize=(8, 5))
+    plt.plot(dates, weights, marker='o', label='Weight (kg)')
+    plt.plot(dates, calories, marker='s', label='Calories Burned')
+    plt.plot(dates, workouts, marker='^', label='Workouts Completed')
+    plt.xlabel("Date")
+    plt.ylabel("Progress")
+    plt.legend()
+    plt.title("Fitness Progress Over Time")
+    plt.grid()
 
-            # If the user asked about workouts last, fetch workout plans
-            if last_topic == "workout":
-                return fetch_workouts(request)
+    # Convert plot to base64 image
+    buffer = io.BytesIO()
+    plt.savefig(buffer, format='png')
+    buffer.seek(0)
+    image_png = buffer.getvalue()
+    buffer.close()
+    encoded_img = base64.b64encode(image_png).decode()
 
-            # If the user asked about meals last, fetch meal plans
-            elif last_topic == "meal":
-                return fetch_meal_plans(request)
+    return Response({"image": encoded_img})
 
-        # **Step 3: Identify if the User Wants a Workout or Meal Plan**
-        if tokens.intersection(workout_keywords):
-            conversation_state[user_id] = {"topic": "workout", "detail": None}
-            return JsonResponse({"response": "Are you looking for a strength or cardio workout?"})
-
-        elif tokens.intersection(meal_keywords):
-            conversation_state[user_id] = {"topic": "meal", "detail": None}
-            return JsonResponse({"response": "Do you prefer a high-protein or a low-carb diet?"})
-
-        # **Step 4: Default fallback response (More Engaging)**
-        return JsonResponse({"response": "That's interesting! Tell me more about your fitness goals."})
-
-    return JsonResponse({"response": "Invalid request."})
-
-
-def fetch_workouts(request):
-    workouts = Workout.objects.filter(user=request.user).values("name", "description")[:3]
-    response = (
-        "Here are some workout recommendations:\n" +
-        "\n".join([f"💪 {w['name']}: {w['description']}" for w in workouts])
-        if workouts else "I don't see any workouts yet. Would you like me to suggest a routine?"
-    )
-    return JsonResponse({"response": response})
-
-
-def fetch_meal_plans(request):
-    meals = MealPlan.objects.filter(user=request.user).values("name", "description")[:3]
-    response = (
-        "Here are some meal plan ideas:\n" +
-        "\n".join([f"🍽 {m['name']}: {m['description']}" for m in meals])
-        if meals else "I don't have meal plans yet. Would you like a high-protein or balanced diet?"
-    )
-    return JsonResponse({"response": response})

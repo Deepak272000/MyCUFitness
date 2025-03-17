@@ -10,6 +10,8 @@ load_dotenv()  # Load .env file
 env = environ.Env()
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+
 SECRET_KEY = env("SECRET_KEY")
 AUTH_USER_MODEL = 'users.User'
 DEBUG = env.bool("DEBUG", default=False)
@@ -161,3 +163,4 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+
