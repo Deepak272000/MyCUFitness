@@ -1,24 +1,14 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.tokens import RefreshToken
-from .models import User, WorkoutProgress, MealPlanReminder, UserProfile
+from users.models import User, WorkoutProgress, MealPlanReminder, UserProfile, FitnessStats
 from django.conf import settings
 from django.core.mail import send_mail
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
-from rest_framework import generics
-#from .serializers import RegisterSerializer
-from .models import FitnessStats
 
-
-from django.contrib.auth import get_user_model
-#
-#
-# class UserSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = User
-#         fields = ['id', 'email', 'username', 'role', 'fitness_goals', 'dietary_preferences', 'allergies']
+# User Serializer
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -30,15 +20,17 @@ class UserSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["email", "date_joined", "is_active"]
 
+# User Profile Serializer
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
-        model = User
+        model = UserProfile
         fields = [
             "first_name", "last_name", "phone_number", "dob",
             "fitness_goals", "dietary_preferences", "allergies",
             "profile_picture"
         ]
 
+# User Profile Update Serializer
 class UserProfileUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
@@ -48,47 +40,40 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
             "profile_picture"
         ]
 
+# User Registration Serializer
 class RegisterSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)
+    password2 = serializers.CharField(write_only=True)
+    profile_picture = serializers.ImageField(required=False)
 
     class Meta:
         model = User
-        fields = ['email', 'password', 'role']
+        fields = (
+            'email', 'first_name', 'last_name', 'phone_number', 'password', 'password2',
+            'profile_picture', 'role', 'fitness_goals', 'dietary_preferences', 'allergies'
+        )
 
-        def validate_email(self, value):
-            if User.objects.filter(email=value).exists():
-                raise serializers.ValidationError(
-                    "A user with this email already exists. Please use a different email or reset your password.")
-            return value
+    def validate(self, data):
+        if data['password'] != data['password2']:
+            raise serializers.ValidationError({"password": "Passwords must match."})
+        return data
 
     def create(self, validated_data):
-        email = validated_data['email']
-        password = validated_data.pop('password')
-        role = validated_data.get('role', 'student')
-        user = User.objects.create(email=validated_data['email'], role=role)
-        ser, created = User.objects.get_or_create(email=email, defaults={"role": role})
-        #user = User.objects.create_user(**validated_data)
-        #user = User(email=validated_data['email'], username=validated_data['username'], role=validated_data['role'])
-        user.set_password(password)
-        user.save()
-        uid = urlsafe_base64_encode(force_bytes(user.pk))
-        token = default_token_generator.make_token(user)
-        verification_url = f"http://127.0.0.1:8000/api/users/verify-email/{uid}/{token}/"
+        """Create user and return instance without sending email here"""
+        validated_data.pop('password2')  # Remove password2 field
+        profile_picture = validated_data.pop('profile_picture', None)
 
-        send_mail(
-            "Verify Your Email - MyCUFitness",
-            f"Click the link to verify your email: {verification_url}",
-            settings.EMAIL_HOST_USER,
-            [user.email],
-            fail_silently=False,
-        )
-        return {
-            "message": "User registered successfully. Please verify your email.",
-            "email": user.email,
-            "verification_url": verification_url  # Optional, for testing
-        }
+        user = User.objects.create_user(**validated_data)
+        user.is_active = False  # Require email verification
+        user.save()
+
+        if profile_picture:
+            user.profile_picture = profile_picture
+            user.save()
+
+        # ✅ Removed send_mail() from here to avoid duplicate emails
         return user
 
+# User Login Serializer
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
@@ -100,17 +85,19 @@ class LoginSerializer(serializers.Serializer):
             return {'token': str(token.access_token), 'refresh': str(token)}
         raise serializers.ValidationError("Invalid Credentials")
 
+# Fitness Stats Serializer
 class FitnessStatsSerializer(serializers.ModelSerializer):
     class Meta:
         model = FitnessStats
         fields = '__all__'
 
-
+# Workout Progress Serializer
 class WorkoutProgressSerializer(serializers.ModelSerializer):
     class Meta:
         model = WorkoutProgress
         fields = '__all__'
 
+# Meal Plan Reminder Serializer
 class MealPlanReminderSerializer(serializers.ModelSerializer):
     class Meta:
         model = MealPlanReminder
