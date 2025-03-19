@@ -4,10 +4,16 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="0dc1388d-a66f-4dab-a71b-49af34f48b66" name="Changes" comment="new changes regarding chatbot">
+    <list default="true" id="0dc1388d-a66f-4dab-a71b-49af34f48b66" name="Changes" comment="new changes">
+      <change beforePath="$PROJECT_DIR$/.idea/MyCUFitness.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/MyCUFitness.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MyCUFitness/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/MyCUFitness/urls.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/meal_plans/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/meal_plans/admin.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/meal_plans/apps.py" beforeDir="false" afterPath="$PROJECT_DIR$/meal_plans/apps.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/meal_plans/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/meal_plans/models.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/meal_plans/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/meal_plans/serializers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/meal_plans/templates/meal_plan.html" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/meal_plans/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/meal_plans/urls.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/meal_plans/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/meal_plans/views.py" afterDir="false" />
     </list>
@@ -53,24 +59,24 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;DefaultHtmlFileTemplate&quot;: &quot;HTML File&quot;,
-    &quot;RunOnceActivity.OpenDjangoStructureViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.pycharm.django.structure.promotion.once.per.project&quot;: &quot;true&quot;,
-    &quot;django.template.preview.state&quot;: &quot;SHOW_EDITOR&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;feature/workout&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/Deepak Chavan/PycharmProjects/MyCUFitness/static/images&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "DefaultHtmlFileTemplate": "HTML File",
+    "RunOnceActivity.OpenDjangoStructureViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.pycharm.django.structure.promotion.once.per.project": "true",
+    "django.template.preview.state": "SHOW_EDITOR",
+    "git-widget-placeholder": "mealplan/yogesh",
+    "last_opened_file_path": "C:/Users/Deepak Chavan/PycharmProjects/MyCUFitness/static/images",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\Deepak Chavan\PycharmProjects\MyCUFitness\static\images" />
@@ -127,7 +133,7 @@
       <workItem from="1741666481888" duration="3591000" />
       <workItem from="1741749920831" duration="1428000" />
       <workItem from="1742075724467" duration="10705000" />
-      <workItem from="1742167463741" duration="9849000" />
+      <workItem from="1742167463741" duration="7378000" />
     </task>
     <task id="LOCAL-00001" summary="new changes">
       <option name="closed" value="true" />
@@ -153,15 +159,7 @@
       <option name="project" value="LOCAL" />
       <updated>1740184058165</updated>
     </task>
-    <task id="LOCAL-00004" summary="new changes regarding chatbot">
-      <option name="closed" value="true" />
-      <created>1742238978779</created>
-      <option name="number" value="00004" />
-      <option name="presentableId" value="LOCAL-00004" />
-      <option name="project" value="LOCAL" />
-      <updated>1742238978779</updated>
-    </task>
-    <option name="localTasksCounter" value="5" />
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -169,8 +167,7 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="new changes" />
-    <MESSAGE value="new changes regarding chatbot" />
-    <option name="LAST_COMMIT_MESSAGE" value="new changes regarding chatbot" />
+    <option name="LAST_COMMIT_MESSAGE" value="new changes" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

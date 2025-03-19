@@ -12,6 +12,7 @@ urlpatterns = [
     path("admin_panel/", include("admin_panel.urls")),
     path('admin/', admin.site.urls),  # Admin Panel
     path('auth/', include('social_django.urls', namespace='social')),
+    path('meal_plans/', include('meal_plans.urls')),
     path("", include("users.urls")),  # No namespace
     path('workouts/', include('workouts.urls')),
     path('chatbot/', include('chatbot.urls')),   #urls for chatbot
