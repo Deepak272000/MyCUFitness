@@ -5,11 +5,28 @@
 <div class="container d-flex justify-content-center align-items-center vh-100">
     <div class="card shadow-lg p-4 text-center" style="max-width: 500px; background: white; color: black;">
         <h2 class="mb-3 text-primary">Verify Your Email</h2>
-        <p class="mb-4">We've sent a verification email to <strong>{{ user.email }}</strong>.
-            Please check your inbox and click the verification link to activate your account.</p>
+
+        <p class="mb-4">
+            {% if user and user.email %}
+                We've sent a verification email to <strong>{{ user.email }}</strong>.
+            {% else %}
+                We couldn't find your email. Please try resending the verification email.
+            {% endif %}
+            Please check your inbox and click the verification link to activate your account.
+        </p>
+
+        <!-- Flash Messages -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %}" role="alert">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
 
         <p>If you haven't received the email, click below to resend.</p>
 
+        <!-- Resend Verification Email Form -->
         <form method="POST" action="{% url 'resend_verification_email' %}">
             {% csrf_token %}
             <button type="submit" class="btn btn-primary w-100">Resend Verification Email</button>
