@@ -1,21 +1,23 @@
+import json
+import logging
+
 import pyotp
 import qrcode
 import io
 import base64
-
 from allauth.socialaccount.models import SocialAccount
 from django.http import JsonResponse
-from .serializers import UserProfileSerializer, UserProfileUpdateSerializer
+from .serializers import UserProfileSerializer
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.utils.encoding import force_bytes
+from django.utils.encoding import force_bytes, force_str
 from .forms import ProfileUpdateForm
 from datetime import timedelta
-from django.views.decorators.csrf import csrf_protect
+from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django.contrib import messages
 from rest_framework.decorators import api_view, permission_classes
-from .models import FitnessStats, WorkoutProgress, MealPlanReminder, UserProfile
+from .models import FitnessStats, WorkoutProgress, MealPlanReminder
 from .serializers import FitnessStatsSerializer, WorkoutProgressSerializer, MealPlanReminderSerializer
 from django.utils.timezone import now
 from django_otp.plugins.otp_totp.models import TOTPDevice
@@ -26,31 +28,16 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.conf import settings
-# from oauth2_provider.models import AccessToken
 from .models import User
 from .serializers import RegisterSerializer, LoginSerializer
-import uuid
 from django.core.mail import send_mail
-from django.shortcuts import get_object_or_404, render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from rest_framework.views import APIView
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from users.models import UserProfile
-
 from django.contrib.auth import get_user_model
+
 User = get_user_model()
-
-# ✅ API-Based Views (No Change)
-# class ConcordiaSSOLoginView(generics.GenericAPIView):
-#     def post(self, request):
-#         token = request.data.get("token")
-#         try:
-#             access_token = AccessToken.objects.get(token=token)
-#             user = authenticate(request, token=token)
-#             if user:
-#                 return Response({'message': 'Authenticated', 'user': user.email})
-#         except AccessToken.DoesNotExist:
-#             return Response({'error': 'Invalid token'}, status=400)
-
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -81,27 +68,35 @@ class Enable2FAView(generics.GenericAPIView):
         device, created = TOTPDevice.objects.get_or_create(user=user, name='default')
         return Response({"message": "Scan this QR code in Google Authenticator app to enable 2FA", "qr_code": device.config_url})
 
+
 def send_verification_email(user_email, user):
-    verification_token = str(uuid.uuid4())
-    user.verification_token = verification_token
-    user.save()
-    subject = "Verify Your Email"
-    verification_link = f"http://127.0.0.1:8000/api/users/verify-email/?token={verification_token}"
-    message = f"Click the link to verify your email: {verification_link}"
-    send_mail(subject, message, settings.EMAIL_HOST_USER, [user_email])
+    uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
+    token = default_token_generator.make_token(user)
+    verification_link = f"http://127.0.0.1:8000/api/users/email-verification/{uidb64}/{token}/"
+    subject = "Verify Your Email - MyCUFitness"
+    message = f"Hello {user.first_name},\n\nClick the link below to verify your email:\n{verification_link}\n\nThanks for using MyCUFitness!"
+    send_mail(subject, message, settings.EMAIL_HOST_USER, [user_email], fail_silently=False)
+
 
 class VerifyEmailView(APIView):
     permission_classes = [AllowAny]
 
-    def get(self, request):
-        token = request.GET.get("token")
-        user = get_object_or_404(User, verification_token=token)
-        if user:
-            user.is_active = True
-            user.verification_token = None
+    def get(self, request, uidb64, token):
+        try:
+            uid = urlsafe_base64_decode(uidb64).decode()
+            user = User.objects.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            return Response({'error': 'Invalid verification link.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if user and default_token_generator.check_token(user, token):
+            user.is_active = True  # ✅ Fix: Activate user
+            user.verification_token = None  # ✅ Clear token
             user.save()
+
             return Response({'message': 'Email verified successfully. You can now log in.'}, status=status.HTTP_200_OK)
+
         return Response({'error': 'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
+
 
 class passwdResetView(generics.GenericAPIView):
     permission_classes = [AllowAny]
@@ -223,28 +218,36 @@ def google_login(request):
     if not user.is_authenticated:
         return redirect("login")
 
-    #  Getting user details from Google login
     social_account = SocialAccount.objects.filter(user=user, provider="google").first()
 
     if social_account:
-        extra_data = social_account.extra_data  # Extract Google account details
+        extra_data = social_account.extra_data
 
-        # Saving user first name, last name, and phone number
         user.first_name = extra_data.get("given_name", user.first_name)
         user.last_name = extra_data.get("family_name", user.last_name)
         user.phone_number = extra_data.get("phone", user.phone_number)
         user.save()
 
-    #  Ensuring profile exists for Google users
     user_profile, created = UserProfile.objects.get_or_create(user=user)
 
-    #  Log in the user
     login(request, user)
     messages.success(request, "Logged in successfully!")
 
-    #  Redirecting to dashboard
+    # ✅ Fix: Prompt Google users to set a password if they don’t have one
+    if not user.has_usable_password():
+        messages.info(request, "Please set a password for manual login.")
+        return redirect("set_password")
+
     return redirect("dashboard")
 
+def google_login_callback(request):
+    user = request.user
+
+    # Check if this is the user's first Google login and if they need to set a password
+    if user.is_authenticated and not user.has_usable_password():
+        return redirect("set_password")  # Redirect to password setup
+
+    return redirect("dashboard")
 
 @api_view(["GET", "PUT"])
 @permission_classes([IsAuthenticated])
@@ -286,73 +289,83 @@ def calculate_bmi(self):
         self.bmi = round(self.weight / ((self.height / 100) ** 2), 2)
     else:
         self.bmi = None
-    self.save()
-@csrf_protect
+    self.save()@csrf_protect
+
+logger = logging.getLogger(__name__)
 def login_view(request):
     if request.method == "POST":
         email = request.POST.get("email")
         password = request.POST.get("password")
 
-        # Authenticate user
+        logger.info(f"Trying to authenticate user with email: {email}")
         user = authenticate(request, email=email, password=password)
 
         if user is not None:
             login(request, user)
-            messages.success(request,  "Login successful!")  # Correct message usage
-            return redirect("dashboard")
+            if user.is_staff or user.is_superuser:  # Check if the user is an admin
+                return redirect('/admin-dashboard/')
+            else:
+             return redirect("dashboard")
         else:
-            messages.error(request, "Invalid email or password.")  # Correct message usage
+            messages.error(request, "Invalid email or password.")
             return render(request, "auth/login.html")
 
     return render(request, "auth/login.html")
 
+
+
 def register_view(request):
     if request.method == "POST":
-        first_name = request.POST["first_name"]
-        last_name = request.POST["last_name"]
-        email = request.POST["email"]
-        password1 = request.POST["password1"]
-        password2 = request.POST["password2"]
-        phone = request.POST["phone"]
-        role = request.POST["role"]
-        dietary_preferences = request.POST.get("dietary_preferences", "")
-        fitness_goals = request.POST.get("fitness_goals", "")
-        allergies = request.POST.getlist("allergies")
-        allergies = ",".join(allergies)
-        profile_picture = request.FILES.get("profile_picture")  # Include role selection
+        form_data = {
+            "email": request.POST["email"],
+            "first_name": request.POST["first_name"],
+            "last_name": request.POST["last_name"],
+            "phone_number": request.POST["phone"],
+            "password": request.POST["password1"],
+            "password2": request.POST["password2"],
+            "role": request.POST["role"],
+            "fitness_goals": request.POST.get("fitness_goals", ""),
+            "dietary_preferences": request.POST.get("dietary_preferences", ""),
+            "allergies": request.POST.getlist("allergies"),
+        }
 
-        if password1 != password2:
-            return render(request, "auth/register.html", {"error": "Passwords do not match"})
+        serializer = RegisterSerializer(data=form_data)
+        if serializer.is_valid():
+            user = serializer.save()
+            user.is_active = True  # Require email verification
+            user.save()
 
-        if User.objects.filter(email=email).exists():
-            return render(request, "auth/register.html", {"error": "Email already registered"})
+            # ✅ Send only **one** email verification
+            send_verification_email(user.email, user)
 
-        user = User.objects.create_user(
-            first_name=first_name,
-            last_name=last_name,
-            email=email,
-            password=password1,
-            phone=phone,
-            role=role,
-            dietary_preferences=dietary_preferences,
-            fitness_goals=fitness_goals,
-            allergies=allergies
-        )
+            messages.success(request, "Account created successfully! Please verify your email.")
+            return redirect("verification_sent")
 
-        user.is_active = True
-        user.verification_token = str(uuid.uuid4())
-        user.save()
-
-        send_verification_email(user)
-
-        TOTPDevice.objects.get_or_create(user=user, name="default")
-
-        messages.success(request, "Account created successfully! Please check your email to verify your account.")
-        return redirect("verification_sent")
+        return render(request, "auth/register.html", {"error": serializer.errors})
 
     return render(request, "auth/register.html")
+def verification_sent_view(request):
+    return render(request, "auth/verification_sent.html")
+@login_required
+def set_password_view(request):
+    if request.method == "POST":
+        new_password = request.POST.get("new_password")
+        confirm_password = request.POST.get("confirm_password")
+
+        if new_password != confirm_password:
+            messages.error(request, "Passwords do not match.")
+            return redirect("set_password")
+
+        request.user.set_password(new_password)
+        request.user.save()
+        messages.success(request, "Password set successfully! You can now log in with email and password.")
+        return redirect("dashboard")
+
+    return render(request, "auth/set_password.html")
+
 
 def password_reset_request_view(request):
+    """Handle password reset email request."""
     if request.method == "POST":
         email = request.POST.get("email")
         user = User.objects.filter(email=email).first()
@@ -362,23 +375,24 @@ def password_reset_request_view(request):
             uid = urlsafe_base64_encode(force_bytes(user.pk))
             reset_url = f"http://127.0.0.1:8000/password-reset-confirm/{uid}/{token}/"
 
-            # Send real email
+            # Send email
             send_mail(
                 "Password Reset Request",
                 f"Click the link below to reset your password:\n{reset_url}",
-                settings.EMAIL_HOST_USER,  # Ensure it's from settings
+                settings.EMAIL_HOST_USER,  # Ensure it's set up correctly
                 [email],
                 fail_silently=False,  # Keep False for debugging
             )
 
             messages.success(request, "Password reset link has been sent to your email.")
-            return redirect("login")
+            return redirect("password_reset_done")  # Redirect to confirmation page
 
         else:
             messages.error(request, "User with this email not found.")
             return redirect("password_reset_request")
 
-    return render(request, "auth/password_reset_request.html")  # Make sure the correct template is used
+    return render(request, "auth/password_reset_request.html")
+
 
 def password_reset_confirm_view(request, uidb64, token):
     """Handle password reset confirmation with custom UI."""
@@ -403,34 +417,37 @@ def password_reset_confirm_view(request, uidb64, token):
         elif len(new_password) < 8:
             messages.error(request, "Password must be at least 8 characters long.")
         else:
-            user.password = make_password(new_password)
+            user.set_password(new_password)  # Use Django's built-in function for security
             user.save()
-            messages.success(request, "Your password has been successfully reset.")
-            return redirect("login")
+            messages.success(request, "Your password has been successfully reset. You can now log in.")
+            return redirect("auth/login")
 
-    return render(request, "auth/password_reset_confirm.html")  # Correct template path
+    return render(request, "auth/password_reset_confirm.html", {"valid_link": True})
 
-
-@api_view(['GET'])
+@api_view(["GET"])
 def user_dashboard(request):
     user = request.user
 
-    # Fetch Fitness Stats
+    # Fetch fitness stats
     stats = FitnessStats.objects.filter(user=user).first()
-    stats_data = FitnessStatsSerializer(stats).data if stats else {}
+    stats_data = {
+        "calories_burned": stats.total_calories_burned if stats else 0,  # Corrected field name
+    "workouts_completed": stats.workouts_completed if stats else 0,  # This field exists
 
-    # Fetch Workout History (last 7 days)
+    }
+
+    # Fetch workout history (Last 7 days)
     workouts = WorkoutProgress.objects.filter(user=user, date__gte=now().date() - timedelta(days=7))
-    workouts_data = WorkoutProgressSerializer(workouts, many=True).data
+    workouts_data = [{"title": w.workout_type, "date": w.date} for w in workouts]
 
-    # Fetch Upcoming Meal Plan Reminders
-    reminders = MealPlanReminder.objects.filter(user=user, date__gte=now().date()).order_by('scheduled_time')
-    reminders_data = MealPlanReminderSerializer(reminders, many=True).data
+    # Fetch upcoming meal plan reminders
+    reminders = MealPlanReminder.objects.filter(user=user, date__gte=now().date()).order_by("scheduled_time")
+    # reminders_data = [{"message": r.message, "scheduled_time": r.scheduled_time} for r in reminders]
 
     return Response({
         "fitness_stats": stats_data,
         "weekly_workouts": workouts_data,
-        "upcoming_meals": reminders_data
+        # "upcoming_meals": reminders_data,
     })
 
 
@@ -464,30 +481,39 @@ def logout_view(request):
     messages.success(request, "You have been logged out successfully.")
     return redirect("/login/")
 
-def email_verification_view(request):
-    return render(request, 'auth/email_verification.html')
 
+
+def email_verification_view(request, uidb64, token):
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if user is not None and default_token_generator.check_token(user, token):
+        user.is_active = True  # Activate the user
+        user.save()
+        messages.success(request, "Your email has been verified successfully!")
+        return redirect("login")
+    else:
+        messages.error(request, "Invalid or expired verification link.")
+        return render(request, "auth/email_verification.html", {"user": user})
+
+@login_required
 def resend_verification_email(request):
-    user_profile = UserProfile.objects.get(user=request.user)
+    user = request.user
 
-    if user_profile.email_verified:
+    if user.is_active:
         messages.info(request, "Your email is already verified.")
-        return redirect('dashboard')  # Redirect to dashboard if already verified
+        return redirect("dashboard")
 
-    # Create verification link
-    verification_link = f"http://127.0.0.1:8000/verify-email/{request.user.id}/"
-
-    # Send email
-    send_mail(
-        subject="Verify Your Email - MyCUFitness",
-        message=f"Hello {request.user.first_name},\n\nClick the link below to verify your email:\n{verification_link}\n\nThanks for using MyCUFitness!",
-        from_email=settings.EMAIL_HOST_USER,
-        recipient_list=[request.user.email],
-        fail_silently=False,
-    )
+    # ✅ Pass user.email and user object correctly
+    send_verification_email(user.email, user)
 
     messages.success(request, "Verification email has been resent. Please check your inbox.")
-    return redirect('email_verification')
+    return redirect("login")
+
+
 def home(request):
     """Render the homepage"""
     return render(request, "index.html")
@@ -502,3 +528,9 @@ def workout_plans_view(request):
 
 class CustomLoginView(LoginView):
     template_name = "auth/login.html"
+
+
+
+# Utility function to check if user is admin
+
+

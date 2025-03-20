@@ -33,6 +33,7 @@ class UserManager(BaseUserManager):
         return self.create_user(email, password, **extra_fields)
 
 class User(AbstractBaseUser, PermissionsMixin):
+    objects = UserManager()  # Ensure this is here
     username = None
     email = models.EmailField(unique=True)
     password = models.CharField(max_length=255)
@@ -54,6 +55,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     weekly_progress = models.JSONField(default=dict, blank=True, null=True)
     upcoming_reminders = models.JSONField(default=dict, blank=True, null=True)
 
+
     def save(self, *args, **kwargs):
         if not self.verification_token:
             self.verification_token = str(uuid.uuid4())
@@ -73,14 +75,17 @@ class User(AbstractBaseUser, PermissionsMixin):
     groups = models.ManyToManyField(Group, related_name="custom_user_groups", blank=True)
     user_permissions = models.ManyToManyField(Permission, related_name="custom_user_permissions", blank=True)
 
-    objects = UserManager()
-
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
     def __str__(self):
         return self.email
 
+class Review(models.Model):
+    reviewer = models.ForeignKey(User, on_delete=models.CASCADE)
+    rating = models.IntegerField()
+    comment = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
 
 class FitnessStats(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -174,6 +179,19 @@ class UserProfile(models.Model):
         """Override save method to calculate BMI before saving."""
         self.calculate_bmi()
         super().save(*args, **kwargs)
+
+    @property
+    def trainer_profile(self):
+        """Returns the associated Trainer profile, if it exists."""
+        from workouts.models import Trainer
+        return Trainer.objects.filter(user=self.user).first()
+
+    @receiver(post_save, sender=User)
+    def create_trainer_profile(sender, instance, created, **kwargs):
+        """Automatically creates a Trainer profile if the user is a trainer."""
+        from workouts.models import Trainer
+        if created or instance.role == "trainer":  # Ensure trainer profile exists
+            Trainer.objects.get_or_create(user=instance)
 
     def get_fitness_goals_display(self):
         """Returns user-friendly fitness goal display"""
