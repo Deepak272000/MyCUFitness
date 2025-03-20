@@ -10,81 +10,20 @@
             <ul class="navbar-nav">
                 {% if user.is_authenticated %}
                     {% if user.role == "student" %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="/workout-plans/">Workout Plans</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/profile/">Profile</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/contact/">Contact</a>
-                        </li>
-                        <li class="nav-item">
-                            <form method="POST" action="/logout/" style="display: inline;">
-                                {% csrf_token %}
-                                <button type="submit" class="nav-link btn btn-outline-light border-0">Logout</button>
-                            </form>
-                        </li>
-
+                        <li class="nav-item"><a class="nav-link" href="/workout-plans/">Workout Plans</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/profile/">Profile</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/contact/">Contact</a></li>
+                        <li class="nav-item"><a class="nav-link btn btn-danger text-white" href="/logout/">Logout</a></li>
                     {% elif user.role == "trainer" %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="/assign-workouts/">Assign Workout Plans</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/trainer-dashboard/">Trainer Dashboard</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/contact/">Contact</a>
-                        </li>
-                        <li class="nav-item">
-                            <form method="POST" action="/logout/" style="display: inline;">
-                                {% csrf_token %}
-                                <button type="submit" class="nav-link btn btn-outline-light border-0">Logout</button>
-                            </form>
-                        </li>
+                        <li class="nav-item"><a class="nav-link" href="/assign-workouts/">Assign Workouts</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/trainer-dashboard/">Dashboard</a></li>
+                        <li class="nav-item"><a class="nav-link btn btn-danger text-white" href="/logout/">Logout</a></li>
                     {% endif %}
-
                 {% else %}
-                    {% if request.path == '/' %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="/">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/about-us/">About Us</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/contact/">Contact</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/login/">Login</a>
-                        </li>
-                    {% elif request.path == '/about-us/' or request.path == '/contact/' %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="/">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/about-us/">About Us</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/contact/">Contact</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/login/">Login</a>
-                        </li>
-                    {% elif request.path == '/login/' %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="/">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/about-us/">About Us</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/contact/">Contact</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/login/">Login</a>
-                        </li>
-                    {% endif %}
+                    <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/about-us/">About Us</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/contact/">Contact</a></li>
+                    <li class="nav-item"><a class="nav-link btn btn-primary text-white" href="/login/">Login</a></li>
                 {% endif %}
             </ul>
         </div>

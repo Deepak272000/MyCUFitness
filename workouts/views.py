@@ -1,18 +1,16 @@
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+from django.utils.timezone import now
 from django.views.generic import ListView
 from rest_framework import generics, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404, render, redirect
-from .models import Workout, Exercise, UserWorkoutTracking, Trainer
+from .models import Workout, UserWorkoutTracking, Reminder
 from .serializers import WorkoutSerializer, UserWorkoutTrackingSerializer, TrainerSerializer
 from django.contrib import messages
 from users.models import User
-from django.db import models
 from workouts.models import Trainer
-
-
 
 
 # ✅ List all workouts or filter by category/difficulty
@@ -23,8 +21,8 @@ class WorkoutListView(generics.ListAPIView):
 
     def get_queryset(self):
         queryset = Workout.objects.all()
-        category = self.request.query_params.get("category")
-        difficulty = self.request.query_params.get("difficulty")
+        category = self.request.GET.get("category")  # ✅ Use GET instead of query_params
+        difficulty = self.request.GET.get("difficulty")
 
         if category:
             queryset = queryset.filter(category=category)
@@ -55,6 +53,7 @@ class UserWorkoutTrackingView(generics.CreateAPIView):
 class AssignWorkoutView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
+    @staticmethod
     def post(self, request, *args, **kwargs):
         trainer = get_object_or_404(Trainer, user=request.user)
         user_id = request.data.get("user_id")
@@ -113,20 +112,24 @@ def my_workouts(request):
 
 @login_required
 def trainer_dashboard(request):
-    """Display the trainer dashboard with assigned clients."""
-    if not hasattr(request.user, 'trainer_profile'):
-        return render(request, "errors/403.html")  # Restrict access if not a trainer
+    try:
+        trainer = request.user.trainer_profile  # Check if user has trainer profile
+    except Trainer.DoesNotExist:
+        return JsonResponse({"error": "Trainer profile not found. Please contact admin."}, status=404)
 
-    trainer = request.user.trainer_profile  # Get the trainer profile
-    assigned_users = trainer.assigned_users.all()  # Fetch assigned clients
-
-    context = {
-        "trainer": trainer,
-        "assigned_users": assigned_users,
-    }
+    clients = trainer.assigned_users.all()
+    context = {"trainer": trainer, "clients": clients}
 
     return render(request, "workouts/trainer_dashboard.html", context)
 
+
+
+
+@login_required
+def get_trainer_clients(request):
+    trainer = request.user.trainer_profile
+    clients = trainer.assigned_users.values("id", "first_name", "email")
+    return JsonResponse({"clients": list(clients)})
 
 
 @login_required
@@ -137,8 +140,8 @@ def assign_workout(request, user_id):
 
     if request.method == "POST":
         workout_id = request.POST.get("workout_id")  # Get selected workout
-        duration_minutes = request.POST.get("duration")
-        calories_burned = request.POST.get("calories")
+        duration_minutes = request.POST.get("duration_minutes")
+        calories_burned = request.POST.get("calories_burned")
 
         workout = get_object_or_404(Workout, id=workout_id)  # Get the workout object
         UserWorkoutTracking.objects.create(
@@ -154,26 +157,50 @@ def assign_workout(request, user_id):
     return render(request, "workouts/assign_workout.html", {"client": client, "workouts": workouts})
 
 
-
 @login_required
 def assign_clients(request):
-    trainer = request.user.trainer_profile
-    available_clients = User.objects.exclude(id__in=trainer.assigned_users.all())
+    """Assign students to a trainer & retrieve students assigned to the trainer."""
+    trainer = request.user.trainer_profile  # Ensure the user has a trainer profile
 
+    # Get only students (excluding trainers and admins)
+    available_clients = User.objects.filter(role="student").exclude(id__in=trainer.assigned_users.all())
+
+    # If it's a POST request, assign selected students
     if request.method == "POST":
         selected_clients = request.POST.getlist("clients")
         trainer.assigned_users.add(*selected_clients)
         trainer.save()
-        return redirect("trainer_dashboard")
+        return redirect("trainer_dashboard")  # Redirect back to trainer dashboard
 
+    # If it's an API request (AJAX), return JSON response
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        assigned_clients = trainer.assigned_users.filter(role="student").values("id", "first_name", "email",
+                                                                                "fitness_goals")
+        return JsonResponse({"assigned_clients": list(assigned_clients)})
+
+    # Render the HTML template normally
     return render(request, "workouts/assign_clients.html", {"available_clients": available_clients})
 
-def dashboard_view(request):
-    context = {
-        "user_role": request.user.role if hasattr(request.user, "role") else "student",
-    }
-    return render(request, "dashboard.html", context)
 
 class AssignWorkoutListView(ListView):
     model = Workout
     template_name = 'workouts/assign_workout_list.html'
+
+
+@login_required
+def user_dashboard(request):
+    user = request.user
+    progress = UserWorkoutTracking.get_weekly_progress(user)
+
+    context = {
+        "total_calories_burned": progress.get("total_calories", 0),
+        "total_workout_duration": progress.get("total_duration", 0),
+        "upcoming_workouts": Workout.objects.filter(category="Personalized")[:3]  # Placeholder for future reminders
+    }
+
+    return render(request, "dashboard/user_dashboard.html", context)
+
+@login_required
+def get_user_reminders(request):
+    reminders = Reminder.objects.filter(user=request.user, date_time__gte=now(), is_read=False)
+    return JsonResponse({"reminders": list(reminders.values("message", "date_time"))})

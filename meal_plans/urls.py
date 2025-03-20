@@ -1,10 +1,7 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from .views import MealPlanViewSet
-
-router = DefaultRouter()
-router.register(r'mealplans', MealPlanViewSet)
+from django.urls import path
+from .views import get_meal_plans, create_meal_plan
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path('meal-plans/', get_meal_plans, name='get_meal_plans'),
+    path('create-meal-plan/', create_meal_plan, name='create_meal_plan'),
 ]

@@ -8,6 +8,15 @@
     <div class="col-md-6">
         <div class="card shadow-lg p-4">
             <h2 class="text-center">Create Account</h2>
+
+            <!-- Display form validation errors -->
+            {% if form.errors %}
+                <div class="alert alert-danger">
+                    <strong>Error:</strong>
+                    {{ form.errors }}
+                </div>
+            {% endif %}
+
             <form id="registerForm" enctype="multipart/form-data" method="POST" action="{% url 'register' %}">
                 {% csrf_token %}
 
@@ -105,14 +114,7 @@
                 </div>
 
                 <button type="submit" class="btn btn-primary w-100">Sign Up</button>
-
-    </form>
-    <script>
-        document.getElementById("registerForm").addEventListener("submit", function(event) {
-            event.preventDefault();
-            window.location.href="/login/";
-        });
-    </script>
+            </form>
 
             <div id="registerMessage" class="mt-3 text-center"></div>
         </div>
@@ -121,41 +123,21 @@
 
 <!-- Include Select2 for Enhanced Dropdowns -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
-    <!-- Load jQuery (Required for Select2) -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
 
 <script>
     $(document).ready(function() {
-        console.log("Document is ready, initializing Select2...");
-
-        // Apply Select2 to the Allergies Multi-Select Dropdown
         $('#allergies').select2({
             placeholder: "Select allergies",
             allowClear: true
         });
-
-        // Debugging: Check if Select2 is being applied
-        console.log("Select2 applied to Allergies dropdown.");
     });
 
-
-// Show trainer-specific fields only if "Trainer" role is selected
-function toggleTrainerFields() {
-    var role = document.getElementById("role").value;
-    var trainerFields = document.getElementById("trainerFields");
-    trainerFields.style.display = (role === "trainer") ? "block" : "none";
-}
-
-// Validate Password Match
-document.getElementById("registerForm").addEventListener("submit", function(event) {
-    var password1 = document.getElementById("password1").value;
-    var password2 = document.getElementById("password2").value;
-
-    if (password1 !== password2) {
-        event.preventDefault();
-        document.getElementById("registerMessage").innerHTML = "<div class='alert alert-danger'>Passwords do not match.</div>";
+    function toggleTrainerFields() {
+        var role = document.getElementById("role").value;
+        var trainerFields = document.getElementById("trainerFields");
+        trainerFields.style.display = (role === "trainer") ? "block" : "none";
     }
-});
 </script>
 {% endblock %}
