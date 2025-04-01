@@ -7,13 +7,14 @@ from users.views import (
     profile_view, about_view, contact_view, workout_plans_view,
     password_reset_request_view, password_reset_confirm_view, enable_2fa_view,
     api_user_profile, UserProfileView, email_verification_view,
-    resend_verification_email, set_password_view, verification_sent_view, google_login_callback
+    resend_verification_email, set_password_view, verification_sent_view, google_login_callback,
+    CustomLoginView, dashboard_data_view
 )
 
 urlpatterns = [
     path("", home, name="home"),
     path("register/", register_view, name="register"),
-    path("login/", login_view, name="login"),
+     path("login/", login_view, name="login"),
     path("logout/", logout_view, name="logout"),
     path("dashboard/", dashboard_view, name="dashboard"),
     path("profile/", profile_view, name="profile"),
@@ -32,6 +33,6 @@ urlpatterns = [
     path("verification-sent/", verification_sent_view, name="verification_sent"),
     path("google/callback/", google_login_callback, name="google_callback"),
     path("google-login/", google_login_callback, name="google_login"),
-
+    path('dashboard-data/', dashboard_data_view, name='dashboard_data'),
 
 ]

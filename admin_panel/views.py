@@ -1,14 +1,16 @@
 import json
-
+from django.shortcuts import redirect
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
-from users.models import Review  #
-
+from users.models import Review, UserProfile  #
 from meal_plans.models import MealPlan
 from users.models import User
-from workouts.models import Workout
+from workouts.models import WorkoutPlan, Trainer
+
+
 # Create your views here.
 def is_admin(user):
     return user.is_staff or user.is_superuser
@@ -74,13 +76,15 @@ def get_admin_dashboard_data(request):
         total_users = User.objects.count()
         total_trainers = User.objects.filter(role="trainer").count()
         total_students = User.objects.filter(role="student").count()
-        active_workouts = Workout.objects.count()
+        active_workouts = WorkoutPlan.objects.filter(is_active=True).count()
+        total_meal_plans = MealPlan.objects.count()
 
         data = {
             "total_users": total_users,
             "total_trainers": total_trainers,
             "total_students": total_students,
             "active_workouts": active_workouts,
+            "total_meal_plans": total_meal_plans,
         }
         return JsonResponse(data, safe=False)
 
@@ -99,22 +103,32 @@ def get_users_list(request):
 
 # ✅ API: Assign a trainer to a student
 @login_required
-@user_passes_test(is_admin)
+@user_passes_test(lambda u: u.role == "admin")
+@csrf_exempt
 def assign_trainer_to_student(request):
     if request.method == "POST":
-        student_id = request.POST.get("student_id")
-        trainer_id = request.POST.get("trainer_id")
+        try:
+            data = json.loads(request.body)
+            student_id = data.get("student_id")
+            trainer_id = data.get("trainer_id")
 
-        student = get_object_or_404(User, id=student_id, role="student")
-        trainer = get_object_or_404(User, id=trainer_id, role="trainer")
+            student_user = get_object_or_404(User, id=student_id, role="student")
+            trainer_user = get_object_or_404(User, id=trainer_id, role="trainer")
 
-        student.assigned_trainer = trainer
-        student.save()
+            student_profile = get_object_or_404(UserProfile, user=student_user)
+            trainer = get_object_or_404(Trainer, user=trainer_user)
 
-        return JsonResponse({"message": f"{trainer.first_name} assigned to {student.first_name} successfully!"})
+            student_profile.assigned_trainer = trainer
+            student_profile.save()
 
-    return JsonResponse({"error": "Invalid request"}, status=400)
+            return JsonResponse({
+                "message": f"{trainer_user.first_name} assigned to {student_user.first_name} successfully!"
+            })
 
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
+
+    return JsonResponse({"error": "Invalid request"}, status=405)
 @login_required
 def assign_student_to_trainer(request):
     if request.method == "POST":
@@ -133,14 +147,28 @@ def assign_student_to_trainer(request):
     return JsonResponse({"error": "Invalid request"}, status=400)
 
 
-@csrf_exempt
-@login_required
-@user_passes_test(lambda u: u.role == "admin")
 def add_workout(request):
-    if request.method != "POST":
-        return JsonResponse({"error": "Invalid request method."}, status=405)
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        description = request.POST.get('description')
+        goal = request.POST.get('goal')
+        duration = request.POST.get('duration')
+        intensity = request.POST.get('intensity')
 
-    return JsonResponse({"message": "Workout added successfully! (Mock API)"}, status=201)
+        try:
+            WorkoutPlan.objects.create(
+                name=name,
+                description=description,
+                goal=goal,
+                duration_minutes=duration,
+                intensity=intensity
+            )
+            messages.success(request, "Workout added successfully!")
+        except Exception as e:
+            print("Workout Add Error:", e)
+            messages.error(request, "Error adding workout.")
+
+    return redirect('admin_dashboard')
 
 
 @csrf_exempt
@@ -153,50 +181,10 @@ def add_meal_plan(request):
     return JsonResponse({"message": "Meal Plan added successfully! (Mock API)"}, status=201)
 
 
-# def is_trainer(user):
-#     return str(user.role).lower() == "trainer"
-# @csrf_exempt
-# @login_required
-# @user_passes_test(is_trainer)
-# def assign_workout_or_mealplan(request):
-#     if request.method != "POST":
-#         return JsonResponse({"error": "Invalid request method."}, status=405)
-#
-#     try:
-#         data = json.loads(request.body)
-#         student_id = data.get("student_id")
-#         plan_type = data.get("plan_type")  # "workout" or "meal"
-#         plan_id = data.get("plan_id")
-#
-#         if not student_id or not plan_type or not plan_id:
-#             return JsonResponse({"error": "Missing required fields."}, status=400)
-#
-#         # Fetch student
-#         student = get_object_or_404(User, id=student_id)  # Removed role filter
-#
-#         if plan_type.lower() == "workout":
-#             workout = get_object_or_404(Workout, id=plan_id)
-#             student.assigned_workouts.add(workout)
-#
-#         elif plan_type.lower() == "meal":
-#             meal_plan = get_object_or_404(MealPlan, id=plan_id)
-#             student.assigned_meal_plans.add(meal_plan)
-#
-#         else:
-#             return JsonResponse({"error": "Invalid plan type. Choose 'workout' or 'meal'."}, status=400)
-#
-#         student.save()
-#         return JsonResponse({"message": f"{plan_type.capitalize()} plan assigned successfully!"}, status=201)
-#
-#     except json.JSONDecodeError:
-#         return JsonResponse({"error": "Invalid JSON format."}, status=400)
-#     except Exception as e:
-#         return JsonResponse({"error": str(e)}, status=500)
-
 @login_required
 @user_passes_test(lambda u: u.role == "admin")
 def get_all_workouts_and_mealplans(request):
-    workouts = Workout.objects.all().values("id", "title", "description")
+    workouts = WorkoutPlan.objects.all().values("id", "title", "description")
     meal_plans = MealPlan.objects.all().values("id", "name", "description")  # ✅ Change `title` to `name` if needed
 
 
@@ -215,3 +203,23 @@ def get_trainers(request):
     """Fetch all trainers"""
     trainers = User.objects.filter(role='trainer').values("id", "first_name", "last_name", "email")
     return JsonResponse({"trainers": list(trainers)})
+
+@login_required
+def view_all_workouts(request):
+    workouts = WorkoutPlan.objects.all()
+    return render(request, 'admin/view_workouts.html', {'workouts': workouts})
+
+@login_required
+def view_all_trainers(request):
+    trainers = User.objects.filter(role='trainer')
+    return render(request, 'admin/view_trainers.html', {'trainers': trainers})
+
+@login_required
+def view_all_students(request):
+    students = User.objects.filter(role='student')
+    return render(request, 'admin/view_students.html', {'students': students})
+
+@login_required
+def view_all_users(request):
+    users = User.objects.all()
+    return render(request, 'admin/view_users.html', {'users': users})

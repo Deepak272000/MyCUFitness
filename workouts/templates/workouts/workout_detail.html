@@ -1,20 +1,14 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% block content %}
-<div class="container mt-5">
-    <h2 class="text-center">{{ workout.title }}</h2>
-    <p class="text-center">Category: {{ workout.category }} | Difficulty: {{ workout.difficulty }}</p>
+<h2>{{ plan.name }}</h2>
+<p>{{ plan.description }}</p>
+<p>Duration: {{ plan.duration_weeks }} weeks</p>
+<p>Difficulty: {{ plan.difficulty_level }}</p>
 
-    <h4>Exercises:</h4>
-    <ul>
-        {% for exercise in workout.exercises.all %}
-        <li><strong>{{ exercise.name }}</strong> - {{ exercise.reps }} reps, {{ exercise.sets }} sets</li>
-        {% endfor %}
-    </ul>
-
-    <form method="post" action="{% url 'track-workout' %}">
-        {% csrf_token %}
-        <input type="hidden" name="workout_id" value="{{ workout.id }}">
-        <button type="submit" class="btn btn-success">Log This Workout</button>
-    </form>
-</div>
+<h3>Workouts</h3>
+<ul>
+    {% for workout in workouts %}
+        <li>{{ workout.name }} - {{ workout.day_of_week }}</li>
+    {% endfor %}
+</ul>
 {% endblock %}

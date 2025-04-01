@@ -3,6 +3,8 @@
 {% block title %}Dashboard - MyCUFitness{% endblock %}
 
 {% block content %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <div class="container mt-4">
     <!-- Email Verification Notice -->
     {% if not user.email_verified %}
@@ -94,8 +96,8 @@
     <div class="card mb-3">
         <div class="card-header bg-info text-white">Weekly Progress</div>
         <div class="card-body">
-            <p><strong>Calories Burned:</strong> <span id="calories-burned">Loading...</span> kcal</p>
-            <p><strong>Workouts Completed:</strong> <span id="workouts-completed">Loading...</span></p>
+            <p><strong>Calories Burned:</strong> <span id="caloriesBurned">Loading...</span> </p>
+            <p><strong>Workouts Completed:</strong> <span id="workoutsCompleted">Loading...</span></p>
         </div>
     </div>
 
@@ -103,49 +105,33 @@
     <div class="card mb-3">
         <div class="card-header bg-dark text-white">Upcoming Workout & Meal Plan Reminders</div>
         <div class="card-body">
-            <ul id="reminder-list"><li>Loading...</li></ul>
+            <ul id="reminderList"><li>Loading...</li></ul>
         </div>
-    </div>
-
-    <!-- Dashboard Navigation -->
-    <div class="d-flex justify-content-between">
-        <a href="{% url 'profile' %}" class="btn btn-primary">Update Profile</a>
-        <a href="/workouts/workout-plans/" class="btn btn-success">View Workout Plans</a>
-        <a href="/workouts/trainer-dashboard/" class="btn btn-info">Trainer Dashboard</a>
     </div>
 </div>
 
 <!-- JavaScript for Dynamic Data Fetching -->
 <script>
-document.addEventListener("DOMContentLoaded", function() {
-    fetch("/api/users/dashboard/")
+
+document.addEventListener("DOMContentLoaded", function () {
+    fetch('/api/users/dashboard-data/')
     .then(response => response.json())
     .then(data => {
-        if (data.fitness_stats) {
-            document.getElementById("calories-burned").innerText = data.fitness_stats.calories_burned || "0 kcal";
-            document.getElementById("workouts-completed").innerText = data.fitness_stats.workouts_completed || "0";
-        } else {
-            document.getElementById("calories-burned").innerText = "0 kcal";
-            document.getElementById("workouts-completed").innerText = "0";
-        }
+        document.getElementById("caloriesBurned").innerText = data.calories_burned + " kcal";
+        document.getElementById("workoutsCompleted").innerText = data.workouts_completed;
 
-        const reminderList = document.getElementById("reminder-list");
+        const reminderList = document.getElementById("reminderList");
         reminderList.innerHTML = "";
-        if (data.upcoming_meals && data.upcoming_meals.length > 0) {
-            data.upcoming_meals.forEach(reminder => {
+
+        if (data.upcoming_reminders.length === 0) {
+            reminderList.innerHTML = "<li>No upcoming reminders.</li>";
+        } else {
+            data.upcoming_reminders.forEach(reminder => {
                 const li = document.createElement("li");
-                li.innerText = `${reminder.message} (Due: ${reminder.scheduled_time})`;
+                li.innerText = `${reminder.meal_name} at ${reminder.scheduled_time}`;
                 reminderList.appendChild(li);
             });
-        } else {
-            reminderList.innerHTML = "<li>No upcoming reminders.</li>";
         }
-    })
-    .catch(error => {
-        console.error("Error fetching dashboard data:", error);
-        document.getElementById("calories-burned").innerText = "Error";
-        document.getElementById("workouts-completed").innerText = "Error";
-        document.getElementById("reminder-list").innerHTML = "<li>Failed to load reminders.</li>";
     });
 });
 </script>

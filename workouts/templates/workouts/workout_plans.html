@@ -1,34 +1,55 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="container mt-5">
-    <h2 class="text-center">Choose Your Workout</h2>
-    <p class="text-center">Unlock your full potential with our tailored workout programs designed to match your fitness goals.</p>
+<style>
+.banner-container {
+    background: url('/static/images/workout-plans-banner.jpg') no-repeat center center/cover;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+}
 
-    <div class="row">
-        <div class="col-md-4">
-            <div class="card shadow">
-                <div class="card-body text-center">
-                    <h5>Strength Training</h5>
-                    <a href="{% url 'workout-list' %}?category=Strength" class="btn btn-dark">View Workouts</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card shadow">
-                <div class="card-body text-center">
-                    <h5>Fat Burn & Weight Loss</h5>
-                    <a href="{% url 'workout-list' %}?category=Fat Burn" class="btn btn-dark">View Workouts</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card shadow">
-                <div class="card-body text-center">
-                    <h5>Endurance & Stamina</h5>
-                    <a href="{% url 'workout-list' %}?category=Endurance" class="btn btn-dark">View Workouts</a>
-                </div>
-            </div>
-        </div>
+.goal-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 2rem;
+    width: 100%;
+    max-width: 1000px;
+    margin-top: 2rem;
+}
+
+.goal-tile {
+    background: rgba(255, 255, 255, 0.15);
+    padding: 1.5rem;
+    text-align: center;
+    border-radius: 1.5rem;
+    font-size: 1.2rem;
+    font-weight: bold;
+    transition: transform 0.3s, box-shadow 0.3s;
+    color: #fff;
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    text-decoration: none;
+}
+
+.goal-tile:hover {
+    transform: scale(1.07);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+</style>
+
+<div class="banner-container">
+    <h2 class="text-center">Choose Your Fitness Goal</h2>
+    <div class="goal-grid">
+        {% for goal in fitness_goals %}
+        <a href="{% url 'goal_workout_plans' goal %}" class="goal-tile">
+        {{ goal|cut:"_"|title }}
+        </a>
+        {% endfor %}
     </div>
 </div>
 {% endblock %}

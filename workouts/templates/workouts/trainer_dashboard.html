@@ -7,34 +7,62 @@
     <h2>Trainer Dashboard</h2>
     <p>Manage your clients and assign workouts based on their fitness goals.</p>
 
+
     <!-- Assigned Clients Section -->
-    <div class="card mb-3">
-        <div class="card-header bg-primary text-white">Assigned Clients</div>
-        <div class="card-body">
-            <ul id="client-list"><li>Loading...</li></ul>
-        </div>
-    </div>
-
-    <!-- Assign Workouts -->
-    <div class="card mb-3">
-        <div class="card-header bg-success text-white">Assign Workouts</div>
-        <div class="card-body">
-            <form id="assignWorkoutForm">
-                <label for="clientSelect" class="form-label">Select Client</label>
-                <select id="clientSelect" class="form-select">
-                    <option value="">Select Client</option>
-                </select>
-
-                <label for="workoutSelect" class="form-label mt-2">Select Workout</label>
-                <select id="workoutSelect" class="form-select">
-                    <option value="">Select Workout</option>
-                </select>
-
-                <button type="submit" class="btn btn-warning mt-3">Assign Workout</button>
-            </form>
-        </div>
+<div class="card mb-3">
+    <div class="card-header bg-primary text-white">Assigned Clients</div>
+    <div class="card-body">
+        <ul id="client-list" class="list-group mb-3"></ul>
     </div>
 </div>
+
+<!-- Grid Row for layout split -->
+<div class="row">
+    <!-- Left: Assign Workouts (75%) -->
+    <div class="col-md-9">
+        <div class="card mb-3">
+            <div class="card-header bg-success text-white">Assign Workouts</div>
+            <div class="card-body">
+                <form method="POST" id="assignWorkoutForm">
+                    {% csrf_token %}
+                    <label for="client_id" class="form-label">Select Client</label>
+                    <select name="client_id" id="clientSelect" class="form-select" required>
+                        <option value="">Select Client</option>
+                        {% for client in clients %}
+                            <option value="{{ client.user.id }}">
+                                {{ client.user.first_name }} {{ client.user.last_name }} ({{ client.fitness_goals|default:"No Goal" }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <label for="workout_id" class="form-label mt-2">Select Workout</label>
+                    <select name="workout_id" id="workoutSelect" class="form-select" required>
+                        <option value="">Select Workout</option>
+                        {% for workout in workouts %}
+                            <option value="{{ workout.id }}">{{ workout.title }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <button type="submit" class="btn btn-warning mt-3">Assign Workout</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- Right: Assign Meal Plan & Create Buttons (25%) -->
+    <div class="col-md-3 d-flex flex-column align-items-start">
+        <a href="{% url 'assign_meal_plan' %}" class="btn btn-success w-100 mb-3 fs-5">
+            🍱 Assign Meal Plan
+        </a>
+        <a href="{% url 'create_meal_plan' %}" class="btn btn-outline-primary w-100 mb-2">
+            + Create Meal Plan
+        </a>
+        <a href="{% url 'create_workout_plan' %}" class="btn btn-outline-secondary w-100">
+            + Create Workout Plan
+        </a>
+    </div>
+</div>
+<a href="{% url 'students_progress' %}" class="btn btn-outline-info mt-3">📊 View Student Progress</a>
+</div>
+
 
 <!-- JavaScript to Fetch Clients & Assign Workouts -->
 <script>
@@ -44,30 +72,60 @@ document.addEventListener("DOMContentLoaded", function() {
     const clientList = document.getElementById("client-list");
 
     // Fetch Assigned Clients
-    fetch("/workouts/assign-clients/", { headers: { "X-Requested-With": "XMLHttpRequest" } })
-    .then(response => response.json())
-    .then(data => {
-        clientList.innerHTML = "";
-        clientSelect.innerHTML = "<option value=''>Select Client</option>";
+    fetch("/workouts/assign-clients/", {headers: {"X-Requested-With": "XMLHttpRequest"}})
+        .then(response => response.json())
+        .then(data => {
+            console.log("Assigned clients data:", data.assigned_clients);
+            clientList.innerHTML = "";
+            clientSelect.innerHTML = "<option value=''>Select Client</option>";
 
-        if (data.assigned_clients.length === 0) {
-            clientList.innerHTML = "<li>No clients assigned yet.</li>";
-        } else {
-            data.assigned_clients.forEach(client => {
-                const li = document.createElement("li");
-                li.innerText = `${client.first_name} - ${client.email} (${client.fitness_goals || "No Goal Set"})`;
-                clientList.appendChild(li);
+            if (data.assigned_clients.length === 0) {
+                clientList.innerHTML = "<li>No clients assigned yet.</li>";
+            } else {
+                data.assigned_clients.forEach(client => {
+                    const li = document.createElement("li");
+                    li.innerText = `${client.user__first_name} ${client.user__last_name} - ${client.user__email} (${client.fitness_goals || "No Goal Set"})`;
 
-                const option = document.createElement("option");
-                option.value = client.id;
-                option.innerText = `${client.first_name} (${client.fitness_goals || "No Goal"})`;
-                clientSelect.appendChild(option);
-            });
+                    clientList.appendChild(li);
+
+                    const option = document.createElement("option");
+                    option.value = client.id;
+                    option.innerText = `${client.user__first_name} ${client.user__last_name} (${client.fitness_goals || "No Goal"})`;
+                    clientSelect.appendChild(option);
+                });
+            }
+        }).catch(error => console.error("Error fetching clients:", error));
+    clientSelect.addEventListener("change", function () {
+        const userId = this.value;
+        console.log("Dropdown changed. Selected userId =", userId);
+        if (!userId) {
+            workoutSelect.innerHTML = "<option value=''>Select Workout</option>";
+            return;
         }
-    }).catch(error => console.error("Error fetching clients:", error));
+        console.log("Selected client ID:", userId);
+        fetch(`/workouts/filtered-workouts/${userId}/`)
+            .then(response => response.json())
+            .then(data => {
+                workoutSelect.innerHTML = "<option value=''>Select Workout</option>";
+                if (data.filtered_workouts && data.filtered_workouts.length > 0) {
+                    data.filtered_workouts.forEach(workout => {
+                        const option = document.createElement("option");
+                        option.value = workout.id;
+                        option.innerText = `${workout.name} (${workout.goal}, ${workout.intensity}, ${workout.duration_minutes} mins)`;
+                        workoutSelect.appendChild(option);
+                    });
+                } else {
+                    const option = document.createElement("option");
+                    option.value = "";
+                    option.innerText = "No matching workouts found";
+                    workoutSelect.appendChild(option);
+                }
+            })
+            .catch(error => console.error("Error fetching filtered workouts:", error));
 
+    });
     // Fetch Workouts
-    fetch("/api/workouts/")
+    fetch("/workouts/api/")
     .then(response => response.json())
     .then(data => {
         workoutSelect.innerHTML = "<option value=''>Select Workout</option>";
@@ -80,26 +138,32 @@ document.addEventListener("DOMContentLoaded", function() {
     }).catch(error => console.error("Error fetching workouts:", error));
 
     // Assign Workout Form Submission
-    document.getElementById("assignWorkoutForm").addEventListener("submit", function(e) {
-        e.preventDefault();
-        const clientId = clientSelect.value;
-        const workoutId = workoutSelect.value;
+    {#document.getElementById("assignWorkoutForm").addEventListener("submit", function(e) {#}
+    const form = document.getElementById("assignWorkoutForm");
+  if (form) {
+      form.addEventListener("submit", function (e) {
+          e.preventDefault();
+          const clientId = clientSelect.value;
+          const workoutId = workoutSelect.value;
 
-        if (!clientId || !workoutId) {
-            alert("Please select both a client and a workout.");
-            return;
-        }
+          if (!clientId || !workoutId) {
+              alert("Please select both a client and a workout.");
+              return;
+          }
 
-        fetch(`/workouts/assign_workout/${clientId}/`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "X-CSRFToken": getCookie("csrftoken") },
-            body: JSON.stringify({ workout_id: workoutId })
-        })
-        .then(response => response.json())
-        .then(data => alert(data.message))
-        .catch(error => console.error("Error:", error));
-    });
-
+          fetch(`/workouts/assign/${clientId}/`, {
+              method: "POST",
+              headers: {"Content-Type": "application/json", "X-CSRFToken": getCookie("csrftoken")},
+              body: JSON.stringify({workout_id: workoutId})
+          })
+              .then(response => response.json())
+              .then(data => {
+                  alert(data.message);
+                  window.location.href = "/workouts/trainer-dashboard/";
+              })
+              .catch(error => console.error("Error:", error));
+      });
+  }
     // Function to get CSRF token for Django POST requests
     function getCookie(name) {
         let cookieValue = null;

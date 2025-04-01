@@ -6,6 +6,7 @@ from django.dispatch import receiver
 from django.conf import settings
 from django.db.models.signals import post_save
 from django.contrib.auth.models import AbstractUser, Group, Permission
+from workouts.models import Trainer, WorkoutPlan
 
 default_app_config = 'yourapp.apps.YourAppConfig'
 
@@ -117,6 +118,7 @@ class UserProfile(models.Model):
     bmi = models.FloatField(null=True, blank=True)
     email_verified = models.BooleanField(default=False)
     secret_key = models.CharField(max_length=32, blank=True, null=True)
+    workout_plan = models.ForeignKey(WorkoutPlan, on_delete=models.SET_NULL, null=True, blank=True)
 
     activity_level = models.CharField(
         max_length=20,
@@ -126,6 +128,13 @@ class UserProfile(models.Model):
             ("high", "High"),
         ],
         blank=True,
+    )
+    assigned_trainer = models.ForeignKey(
+        'workouts.Trainer',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='assigned_students'
     )
 
     fitness_goals = models.CharField(

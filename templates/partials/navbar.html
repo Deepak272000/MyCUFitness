@@ -8,23 +8,66 @@
 
         <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
             <ul class="navbar-nav">
-                {% if user.is_authenticated %}
-                    {% if user.role == "student" %}
-                        <li class="nav-item"><a class="nav-link" href="/workout-plans/">Workout Plans</a></li>
-                        <li class="nav-item"><a class="nav-link" href="/profile/">Profile</a></li>
-                        <li class="nav-item"><a class="nav-link" href="/contact/">Contact</a></li>
-                        <li class="nav-item"><a class="nav-link btn btn-danger text-white" href="/logout/">Logout</a></li>
-                    {% elif user.role == "trainer" %}
-                        <li class="nav-item"><a class="nav-link" href="/assign-workouts/">Assign Workouts</a></li>
-                        <li class="nav-item"><a class="nav-link" href="/trainer-dashboard/">Dashboard</a></li>
-                        <li class="nav-item"><a class="nav-link btn btn-danger text-white" href="/logout/">Logout</a></li>
-                    {% endif %}
-                {% else %}
-                    <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/about-us/">About Us</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/contact/">Contact</a></li>
-                    <li class="nav-item"><a class="nav-link btn btn-primary text-white" href="/login/">Login</a></li>
-                {% endif %}
+                {% if request.user.is_authenticated %}
+
+    {% if request.user.role == "student" %}
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'profile' %}">Profile</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'workout_goals_view' %}">Workout Plans</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'my_plan_view' %}">My Workout Plan</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'meal_plans_assigned' %}">My Meal Plans</a>  {# Add this URL/view if not already present #}
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'contact' %}">Contact</a>
+        </li>
+        <li class="nav-item">
+            <form method="POST" action="{% url 'logout' %}" style="display: inline;">
+    {% csrf_token %}
+    <button class="nav-link btn btn-danger text-white" type="submit" style="border: none; background: none;">
+      Logout
+    </button>
+  </form>
+        </li>
+        {% elif request.user.role == "admin" %}
+           <li class="nav-item">
+            <form method="POST" action="{% url 'logout' %}" style="display: inline;">
+    {% csrf_token %}
+    <button class="nav-link btn btn-danger text-white" type="submit" style="border: none; background: none;">
+      Logout
+    </button>
+  </form>
+        </li>
+  <!-- Add any other admin-specific links -->
+
+    {% elif request.user.role == "trainer" %}
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'trainer_dashboard' %}">Trainer Dashboard</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'contact' %}">Contact</a>
+        </li>
+        <li class="nav-item">
+            <form method="POST" action="{% url 'logout' %}" style="display: inline;">
+    {% csrf_token %}
+    <button class="nav-link btn btn-danger text-white" type="submit" style="border: none; background: none;">
+      Logout
+    </button>
+  </form>
+        </li>
+    {% endif %}
+{% else %}
+    <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+    <li class="nav-item"><a class="nav-link" href="/about-us/">About Us</a></li>
+    <li class="nav-item"><a class="nav-link" href="/contact/">Contact</a></li>
+    <li class="nav-item"><a class="nav-link btn btn-primary text-white" href="/login/">Login</a></li>
+{% endif %}
+
             </ul>
         </div>
     </div>

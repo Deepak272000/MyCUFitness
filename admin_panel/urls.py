@@ -1,7 +1,9 @@
 from django.urls import path
+
+from admin_panel import views
 from admin_panel.views import admin_dashboard_view, get_admin_dashboard_data, get_users_list, assign_trainer_to_student, \
-    get_students, get_trainers, delete_user, add_user, assign_student_to_trainer,  \
-    get_reviews, get_all_workouts_and_mealplans, add_workout, add_meal_plan
+    get_students, get_trainers, delete_user, add_user, assign_student_to_trainer, \
+    get_reviews, get_all_workouts_and_mealplans, add_workout, add_meal_plan, view_all_users
 
 urlpatterns = [
 
@@ -22,6 +24,12 @@ urlpatterns = [
     path("api/admin/all-plans/", get_all_workouts_and_mealplans, name="get_all_plans"),
     path('api/admin/add-workout/', add_workout, name="add_workout"),
     path('api/admin/add-meal-plan/', add_meal_plan, name="add_meal_plan"),
+
+    path('admin-dashboard/workouts/', views.view_all_workouts, name='view_all_workouts'),
+    path('admin-dashboard/trainers/', views.view_all_trainers, name='view_all_trainers'),
+    path('admin-dashboard/students/', views.view_all_students, name='view_all_students'),
+    path('admin-dashboard/users/', view_all_users, name='view_all_users'),
+
 
 
 ]

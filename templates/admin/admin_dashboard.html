@@ -3,37 +3,63 @@
 {% block title %}Admin Dashboard - MyCUFitness{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <h2 class="text-center text-primary">Admin Dashboard</h2>
-    <p class="text-center text-muted">Manage users, trainers, and student assignments</p>
+<!-- Stats Overview -->
+<!-- Stats Overview -->
+<div class="row text-center mb-4">
 
-    <!-- Stats Overview -->
-    <div class="row text-center mb-4">
-        <div class="col-md-3">
-            <div class="card bg-primary text-white p-3 shadow">
-                <h5>Total Users</h5>
-                <h3 id="total-users">Loading...</h3>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card bg-success text-white p-3 shadow">
-                <h5>Total Trainers</h5>
-                <h3 id="total-trainers">Loading...</h3>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card bg-warning text-dark p-3 shadow">
-                <h5>Total Students</h5>
-                <h3 id="total-students">Loading...</h3>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card bg-danger text-white p-3 shadow">
-                <h5>Active Workouts</h5>
-                <h3 id="active-workouts">Loading...</h3>
-            </div>
-        </div>
-    </div>
+  <!-- Total Users -->
+  <div class="col-md-2">
+    <a href="{% url 'view_all_users' %}" style="text-decoration: none;">
+      <div class="card bg-primary text-white p-3 shadow">
+        <h5>Total Users</h5>
+        <h3 id="total-users">{{ total_users }}</h3>
+      </div>
+    </a>
+  </div>
+
+  <!-- Total Trainers -->
+  <div class="col-md-2">
+    <a href="{% url 'view_all_trainers' %}" style="text-decoration: none;">
+      <div class="card bg-success text-white p-3 shadow">
+        <h5>Total Trainers</h5>
+        <h3 id="total-trainers">{{ total_trainers }}</h3>
+      </div>
+    </a>
+  </div>
+
+  <!-- Total Students -->
+  <div class="col-md-2">
+    <a href="{% url 'view_all_students' %}" style="text-decoration: none;">
+      <div class="card bg-warning text-dark p-3 shadow">
+        <h5>Total Students</h5>
+        <h3 id="total-students">{{ total_students }}</h3>
+      </div>
+    </a>
+  </div>
+
+  <!-- Active Workouts -->
+  <div class="col-md-3">
+    <a href="{% url 'view_all_workouts' %}" style="text-decoration: none;">
+      <div class="card bg-danger text-white p-3 shadow">
+        <h5>Active Workouts</h5>
+        <h3 id="active-workouts">0</h3>
+      </div>
+    </a>
+  </div>
+
+  <!-- Meal Plans -->
+  <div class="col-md-3">
+    <a href="{% url 'view_all_meal_plans' %}" style="text-decoration: none;">
+      <div class="card bg-success text-white p-3 shadow">
+        <h5>Meal Plans</h5>
+        <h3 id="total-meal-plans">0</h3>
+      </div>
+    </a>
+  </div>
+
+</div>
+
+
 
     <!-- User Management -->
 <div class="card shadow mb-4">
@@ -139,24 +165,91 @@
     </div>
 </div>
 
-    <!-- Add Workout Form -->
-<h3>Add Workout</h3>
-<form id="addWorkoutForm">
-    <input type="text" id="workoutName" placeholder="Workout Name" required>
-    <input type="text" id="workoutCategory" placeholder="Category" required>
-    <input type="text" id="workoutDifficulty" placeholder="Difficulty" required>
-    <input type="number" id="workoutDuration" placeholder="Duration (mins)">
-    <button type="submit">Add Workout</button>
-</form>
+    <div class="d-flex justify-content-end mb-3">
+    <button class="btn btn-danger me-2" data-bs-toggle="modal" data-bs-target="#addWorkoutModal">+ Add Workout</button>
+    <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#addMealPlanModal">+ Add Meal Plan</button>
+    </div>
 
-<!-- Add Meal Plan Form -->
-<h3>Add Meal Plan</h3>
-<form id="addMealPlanForm">
-    <input type="text" id="mealPlanName" placeholder="Meal Plan Name" required>
-    <textarea id="mealPlanDescription" placeholder="Description"></textarea>
-    <input type="number" id="mealPlanCalories" placeholder="Calories" required>
-    <button type="submit">Add Meal Plan</button>
-</form>
+<!-- Add Workout Modal -->
+<div class="modal fade" id="addWorkoutModal" tabindex="-1" aria-labelledby="addWorkoutModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg"> <!-- Wider modal for weekly plan -->
+    <div class="modal-content">
+      <form method="POST" action="{% url 'add_workout' %}">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title" id="addWorkoutModalLabel">Add Workout</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+          <input type="text" class="form-control mb-2" name="name" placeholder="Workout Name" required>
+          <textarea class="form-control mb-2" name="description" placeholder="Workout Description" required></textarea>
+
+          <select class="form-select mb-2" name="goal" required>
+              <option value="">-- Select Goal --</option>
+              <option value="weight_loss">Weight Loss & Fat Burn</option>
+              <option value="muscle_gain">Muscle Gain & Strength Training</option>
+              <option value="endurance">Endurance & Stamina Boost</option>
+              <option value="flexibility">Flexibility & Mobility</option>
+              <option value="core_strength">Core & Functional Strength</option>
+              <option value="balanced_fitness">Balanced Fitness & Well-being</option>
+              <option value="athletic_performance">Athletic Performance & Conditioning</option>
+              <option value="custom_wellness">Customized & Holistic Wellness</option>
+          </select>
+
+          <input type="number" class="form-control mb-2" name="duration_minutes" placeholder="Duration (mins)" required>
+
+          <select class="form-select mb-3" name="intensity" required>
+              <option value="">-- Select Intensity --</option>
+              <option value="low">Low</option>
+              <option value="moderate">Moderate</option>
+              <option value="high">High</option>
+          </select>
+
+          <!-- Collapsible Weekly Plan Section -->
+          <button class="btn btn-outline-secondary mb-2" type="button" data-bs-toggle="collapse" data-bs-target="#weeklyPlanCollapse" aria-expanded="false" aria-controls="weeklyPlanCollapse">
+            Add Weekly Plan (Optional)
+          </button>
+
+          <div class="collapse" id="weeklyPlanCollapse">
+            <label class="form-label mt-2">Weekly Plan (JSON format)</label>
+            <textarea name="weekly_plan" class="form-control" rows="6" placeholder='e.g. {"Monday": "Cardio", "Tuesday": "Yoga", ...}'></textarea>
+            <small class="text-muted">Enter a valid JSON object with daily workout plans.</small>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-danger">Add Workout</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Add Meal Plan Modal -->
+<div class="modal fade" id="addMealPlanModal" tabindex="-1" aria-labelledby="addMealPlanModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST" action="{% url 'add_meal_plan' %}">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title" id="addMealPlanModalLabel">Add Meal Plan</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <input type="text" class="form-control mb-2" name="name" placeholder="Meal Plan Name" required>
+          <textarea class="form-control mb-2" name="description" placeholder="Description"></textarea>
+          <input type="number" class="form-control" name="calories" placeholder="Calories" required>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-warning">Add Meal Plan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 
 <!-- JavaScript for Fetching Data & Actions -->
 <script>
@@ -165,10 +258,20 @@ document.addEventListener("DOMContentLoaded", function () {
     fetch("/admin_panel/api/admin/dashboard/")
     .then(response => response.json())
     .then(data => {
-        document.getElementById("total-users").innerText = data.total_users;
-        document.getElementById("total-trainers").innerText = data.total_trainers;
-        document.getElementById("total-students").innerText = data.total_students;
-        document.getElementById("active-workouts").innerText = data.active_workouts;
+        const totalUsers = document.getElementById("total-users");
+        if (totalUsers) totalUsers.innerText = data.total_users;
+
+        const totalTrainers = document.getElementById("total-trainers");
+        if (totalTrainers) totalTrainers.innerText = data.total_trainers;
+
+        const totalStudents = document.getElementById("total-students");
+        if (totalStudents) totalStudents.innerText = data.total_students;
+
+        const activeWorkouts = document.getElementById("active-workouts");
+        if (activeWorkouts) activeWorkouts.innerText = data.active_workouts;
+
+        const totalMealPlans = document.getElementById("total-meal-plans");
+        if (totalMealPlans) totalMealPlans.innerText = data.total_meal_plans;
     }).catch(error => console.error("Error fetching dashboard stats:", error));
 
     // Load Users
@@ -407,46 +510,52 @@ document.addEventListener("DOMContentLoaded", function () {
     })
     .catch(error => console.error("Error loading workouts and meal plans:", error));
 });
-document.getElementById("addWorkoutForm").addEventListener("submit", function(event) {
-    event.preventDefault();
+    //adding workout form
+    const addWorkoutForm = document.getElementById("addWorkoutForm");
+    if (addWorkoutForm) {
+        addWorkoutForm.addEventListener("submit", function (event) {
+            event.preventDefault();
 
-    let workoutData = {
-        name: document.getElementById("workoutName").value,
-        category: document.getElementById("workoutCategory").value,
-        difficulty: document.getElementById("workoutDifficulty").value,
-        duration: document.getElementById("workoutDuration").value,
-    };
+            let workoutData = {
+                name: document.getElementById("workoutName").value,
+                category: document.getElementById("workoutCategory").value,
+                difficulty: document.getElementById("workoutDifficulty").value,
+                duration: document.getElementById("workoutDuration").value,
+            };
 
-    // Temporary API (replace later with actual backend API)
-    fetch('/api/admin/add-workout/', {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(workoutData)
-    })
-    .then(response => response.json())
-    .then(data => alert(data.message || data.error))
-    .catch(error => console.error("Error:", error));
-});
+            // Temporary API (replace later with actual backend API)
+            fetch('/api/admin/add-workout/', {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(workoutData)
+            })
+                .then(response => response.json())
+                .then(data => alert(data.message || data.error))
+                .catch(error => console.error("Error:", error));
+        });
+    }
+    const addMealPlanForm = document.getElementById("addMealPlanForm");
+    if (addMealPlanForm) {
+        addMealPlanForm.addEventListener("submit", function (event) {
+            event.preventDefault();
 
-document.getElementById("addMealPlanForm").addEventListener("submit", function(event) {
-    event.preventDefault();
+            let mealPlanData = {
+                name: document.getElementById("mealPlanName").value,
+                description: document.getElementById("mealPlanDescription").value,
+                calories: document.getElementById("mealPlanCalories").value,
+            };
 
-    let mealPlanData = {
-        name: document.getElementById("mealPlanName").value,
-        description: document.getElementById("mealPlanDescription").value,
-        calories: document.getElementById("mealPlanCalories").value,
-    };
-
-    // Temporary API (replace later with actual backend API)
-    fetch('/api/admin/add-meal-plan/', {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(mealPlanData)
-    })
-    .then(response => response.json())
-    .then(data => alert(data.message || data.error))
-    .catch(error => console.error("Error:", error));
-});
+            // Temporary API (replace later with actual backend API)
+            fetch('/api/admin/add-meal-plan/', {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(mealPlanData)
+            })
+                .then(response => response.json())
+                .then(data => alert(data.message || data.error))
+                .catch(error => console.error("Error:", error));
+        });
+    }
 
     // ✅ Get CSRF Token
     function getCookie(name) {
@@ -463,5 +572,4 @@ document.getElementById("addMealPlanForm").addEventListener("submit", function(e
     }
 });
 </script>
-
 {% endblock %}

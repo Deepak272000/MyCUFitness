@@ -4,7 +4,7 @@
 <div class="container mt-4">
     <h2>Assign Workout to {{ client.first_name }}</h2>
 
-    <form method="post" action="{% url 'assign_workout' user_id=client.id %}">
+    <form method="post" action="{% url 'assign_workout' client.id %}">
         {% csrf_token %}
 
         <div class="mb-3">

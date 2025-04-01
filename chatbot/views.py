@@ -1,58 +1,99 @@
-from rest_framework.decorators import permission_classes
+from rest_framework.decorators import permission_classes, api_view
 from rest_framework.permissions import IsAuthenticated
-from meal_plans.models import Meal, MealPlan
-from workouts.models import Workout
+from rest_framework.response import Response
+from django.contrib.auth.decorators import login_required
+from django.db.models import Q
+
+from meal_plans.models import MealPlan
+from workouts.models import WorkoutPlan
 from chatbot.models import FitnessProgress
 import matplotlib.pyplot as plt
 import io
 import base64
-from rest_framework.response import Response
-from django.contrib.auth.decorators import login_required
-from rest_framework.decorators import api_view
+import random
 
-
-from django.db.models import Q
-
+# User context to store temporary chat state
 user_context = {}
+
+# Expected input options
+EXPECTED_GOALS = [
+    "weight_loss", "muscle_gain", "core_strength", "endurance",
+    "flexibility", "athletic_performance", "balanced_fitness", "custom_wellness"
+]
+
+EXPECTED_DIETARY_PREFERENCES = [
+    "vegetarian", "vegan", "keto", "gluten_free", "non_vegetarian", "none"
+]
+
+FALLBACK_RESPONSES = [
+    "I'm not sure I understand. Can you rephrase that?",
+    "Could you clarify? I'm here to help with fitness and nutrition!",
+    "I didn't get that. Can you try again?",
+    "I'm designed to help with fitness goals. Can you tell me your goal?",
+]
 
 @api_view(['POST'])
 def chatbot_response(request):
-    user_id = request.user.id  # Identify user
-    user_message = request.data.get("message", "").lower()
+    user_id = request.user.id
+    user_message = request.data.get("message", "").strip().lower()
 
-    # Initialize user session if not exists
     if user_id not in user_context:
         user_context[user_id] = {"step": "ask_goal"}
 
-    # Step 1: Ask for fitness goal
     if user_context[user_id]["step"] == "ask_goal":
         user_context[user_id]["step"] = "waiting_for_goal"
-        return Response({"response": "Hi! I can help you with meal and workout plans. What's your fitness goal? (e.g., weight loss, muscle gain, maintain fitness)"})
+        return Response({
+            "response": "Hi! I can help with meal and workout plans. What's your fitness goal? (e.g., weight_loss, muscle_gain, core_strength)"
+        })
 
-    # Step 2: Capture fitness goal and ask dietary preferences
     if user_context[user_id]["step"] == "waiting_for_goal":
-        user_context[user_id]["goal"] = user_message
-        user_context[user_id]["step"] = "waiting_for_diet"
-        return Response({"response": "Got it! Do you have any dietary preferences? (e.g., vegetarian, keto, no preference)"})
+        if user_message in EXPECTED_GOALS:
+            user_context[user_id]["goal"] = user_message
+            user_context[user_id]["step"] = "waiting_for_diet"
+            return Response({
+                "response": "Got it! Do you have any dietary preferences? (e.g., vegetarian, keto, vegan, none)"
+            })
+        else:
+            return Response({"response": random.choice(FALLBACK_RESPONSES)})
 
-    # Step 3: Capture dietary preference and provide meal plan
     if user_context[user_id]["step"] == "waiting_for_diet":
-        user_context[user_id]["diet"] = user_message
-        user_context[user_id]["step"] = "meal_suggestion"
+        if user_message in EXPECTED_DIETARY_PREFERENCES:
+            user_context[user_id]["diet"] = user_message
+            user_context[user_id]["step"] = "show_workout"
 
-        # Fetch meal plans based on user preference
-        meal_plans = MealPlan.objects.filter(category=user_context[user_id]["diet"])
-        if not meal_plans.exists():
-            return Response({"response": "Sorry, no meal plans found for your preference."})
+            meal_plans = MealPlan.objects.filter(diet_type__iexact=user_message)
+            if not meal_plans.exists():
+                meal_text = "No meal plans found for your preference."
+            else:
+                meal_text = "\n".join([f"- {meal.name}" for meal in meal_plans])
 
-        meal_suggestions = "\n".join([f"- {meal.name}" for meal in meal_plans])
-        return Response({"response": f"Thanks! Based on your goal and preference, here are some meal options:\n{meal_suggestions}"})
+            return Response({
+                "response": f"Here are some meal plans based on your preference:\n{meal_text}\n\nWould you like workout recommendations as well? (yes/no)"
+            })
+        else:
+            return Response({"response": random.choice(FALLBACK_RESPONSES)})
+
+    if user_context[user_id]["step"] == "show_workout":
+        if "yes" in user_message:
+            goal = user_context[user_id]["goal"]
+            workouts = WorkoutPlan.objects.filter(goal__iexact=goal)
+            if not workouts.exists():
+                workout_text = "No workout plans found for your goal."
+            else:
+                workout_text = "\n".join([f"- {w.name}" for w in workouts])
+
+            user_context[user_id]["step"] = "done"
+            return Response({
+                "response": f"Here are some recommended workout plans:\n{workout_text}\n\nLet me know if you'd like to log your progress or need anything else!"
+            })
+        else:
+            user_context[user_id]["step"] = "done"
+            return Response({"response": "Alright! Let me know if you want to log progress or need anything else."})
 
     return Response({"response": "How can I assist you with your fitness today?"})
 
-
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])  # Only logged-in users can log progress
+@permission_classes([IsAuthenticated])
 def log_fitness_progress(request):
     """Allows users to log daily fitness progress."""
     user = request.user
@@ -73,7 +114,6 @@ def log_fitness_progress(request):
         "message": "Progress logged successfully!",
         "adjustment": adjustment
     })
-
 
 
 @login_required
@@ -100,7 +140,6 @@ def get_progress_chart(request):
     plt.title("Fitness Progress Over Time")
     plt.grid()
 
-    # Convert plot to base64 image
     buffer = io.BytesIO()
     plt.savefig(buffer, format='png')
     buffer.seek(0)
@@ -109,4 +148,3 @@ def get_progress_chart(request):
     encoded_img = base64.b64encode(image_png).decode()
 
     return Response({"image": encoded_img})
-

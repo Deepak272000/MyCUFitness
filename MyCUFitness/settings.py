@@ -121,9 +121,9 @@ EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
 
 SITE_ID = 4
 LOGIN_REDIRECT_URL = "/dashboard/"
-LOGOUT_REDIRECT_URL = "/auth/login/"
+LOGOUT_REDIRECT_URL = "/login/"
 ACCOUNT_LOGOUT_REDIRECT_URL = "/login/"
-LOGIN_URL = "/auth/login/"  # ✅ Ensure Django looks at `auth/login.html`
+LOGIN_URL = "/login/"  #
 
 ACCOUNT_ADAPTER = "allauth.account.adapter.DefaultAccountAdapter"
 ACCOUNT_FORMS = {

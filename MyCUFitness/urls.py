@@ -9,8 +9,9 @@ from users.views import home, about_view, contact_view, dashboard_view, enable_2
 from users.views import CustomLoginView
 urlpatterns = [
      path("admin-dashboard/", admin_dashboard_view, name="admin_dashboard"),  # Admin Dashboard
-    path("admin_panel/", include("admin_panel.urls")),
+     path("admin_panel/", include("admin_panel.urls")),
     path('admin/', admin.site.urls),  # Admin Panel
+    path('meal_plans/', include('meal_plans.urls')),
     path('auth/', include('social_django.urls', namespace='social')),
     path("", include("users.urls")),  # No namespace
     path('workouts/', include('workouts.urls')),
@@ -28,7 +29,7 @@ urlpatterns = [
     path('accounts/', include('allauth.urls')),  # Social Authentication
     path("social-login/", LoginView.as_view(template_name="socialaccount/login.html"), name="socialaccount_login"),
     path("social-signup/", SignupView.as_view(template_name="socialaccount/signup.html"), name="socialaccount_signup"),
-    path("auth/login/", login_view, name="auth_login"),
+    # path("auth/login/", login_view, name="auth_login"),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
