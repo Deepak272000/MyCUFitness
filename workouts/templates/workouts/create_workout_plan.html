@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h2>Create Workout Plan</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        {{ form.name.label }} {{ form.name }}<br>
+        {{ form.description.label }} {{ form.description }}<br>
+        {{ form.goal.label }} {{ form.goal }}<br>
+        {{ form.duration_minutes.label }} {{ form.duration_minutes }}<br>
+        {{ form.intensity.label }} {{ form.intensity }}<br>
+        {{ form.weekly_plan_json.label }} {{ form.weekly_plan_json }}<br>
+        <button type="submit" class="btn btn-primary mt-2">Submit</button>
+    </form>
+</div>
+{% endblock %}
