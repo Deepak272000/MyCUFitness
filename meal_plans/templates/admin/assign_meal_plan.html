@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Assign Meal Plan to Student</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="student">Select Student</label>
+            <select name="student_id" class="form-select" required>
+                {% for student in students %}
+                    <option value="{{ student.id }}">{{ student.get_full_name }} - {{ student.email }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="meal">Select Meal Plan</label>
+            <select name="meal_plan_id" class="form-select" required>
+                {% for meal in meal_plans %}
+                    <option value="{{ meal.id }}">{{ meal.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Assign Meal Plan</button>
+    </form>
+</div>
+{%endblock%}
