@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-5">
+    <h2 class="mb-4 text-capitalize text-center">{{ goal|cut:"_" }} Workout Plans</h2>
+    <div class="row">
+        {% for plan in plans %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card shadow rounded h-100">
+                <div class="card-header bg-primary text-white">
+                    {{ plan.name }}
+                </div>
+                <div class="card-body">
+                    <p><strong>Intensity:</strong> {{ plan.intensity }}</p>
+                    <p><strong>Duration:</strong> {{ plan.duration_minutes }} minutes</p>
+                    <p><strong>Goal:</strong> {{ plan.goal|cut:"_" }}</p>
+                    <h6>Weekly Plan:</h6>
+                    <pre class="small">{{ plan.weekly_plan }}</pre>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <p class="text-center">No workout plans found for this goal.</p>
+        {% endfor %}
+    </div>
+
+    <div class="text-center mt-4">
+        <a href="{% url 'workout_goals_view' %}" class="btn btn-secondary">&larr; Back to Goals</a>
+    </div>
+</div>
+
+{% endblock %}
