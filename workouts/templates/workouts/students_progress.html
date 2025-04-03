@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Student Progress - MyCUFitness{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">📊 Student Progress</h2>
+
+    {% for student in students %}
+    <div class="card mb-4 shadow">
+        <div class="card-header bg-primary text-white">
+            {{ student.first_name }} {{ student.last_name }} - {{ student.fitness_goals|default:"No Goal" }}
+        </div>
+        <div class="card-body">
+            <p><strong>Email:</strong> {{ student.email }}</p>
+            <p><strong>Weight:</strong> {{ student.fitness_stats.weight|default:"N/A" }} kg</p>
+            <p><strong>BMI:</strong> {{ student.fitness_stats.bmi|default:"N/A" }}</p>
+            <p><strong>Calories Burned This Week:</strong> {{ student.weekly_progress.calories_burned|default:"0" }}</p>
+            <p><strong>Workouts Completed:</strong> {{ student.weekly_progress.workouts_done|default:"0" }}</p>
+
+            <!-- Progress Chart Placeholder -->
+            <canvas id="chart-{{ forloop.counter }}" height="100"></canvas>
+        </div>
+    </div>
+    {% empty %}
+    <p>No students assigned yet.</p>
+    {% endfor %}
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    {% for student in students %}
+    const ctx{{ forloop.counter }} = document.getElementById('chart-{{ forloop.counter }}').getContext('2d');
+    new Chart(ctx{{ forloop.counter }}, {
+        type: 'bar',
+        data: {
+            labels: ['Calories Burned', 'Workouts Done'],
+            datasets: [{
+                label: 'Weekly Progress',
+                data: [
+                    {{ student.weekly_progress.calories_burned|default:0 }},
+                    {{ student.weekly_progress.workouts_done|default:0 }}
+                ],
+                backgroundColor: ['#4e73df', '#1cc88a'],
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    {% endfor %}
+</script>
+{% endblock %}
