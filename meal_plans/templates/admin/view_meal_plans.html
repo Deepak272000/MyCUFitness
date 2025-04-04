@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="text-2xl font-bold">Meal Plans</h2>
+    <button class="btn btn-primary shadow" onclick="openModal()">
+      <i class="bi bi-plus-circle me-1"></i> Create Meal Plan
+    </button>
+  </div>
+
+  <!-- Meal Plan Cards Grid -->
+  <div class="row">
+    {% for meal_plan in meal_plans %}
+    <div class="col-md-4 mb-4">
+      <div class="card shadow rounded-3 border-0 h-100">
+        <div class="card-body">
+          <h5 class="card-title fw-bold">{{ meal_plan.name }}</h5>
+          <p class="card-text"><strong>Calories:</strong> {{ meal_plan.calories|default:"N/A" }}</p>
+        </div>
+        <div class="card-footer bg-white border-0 d-flex justify-content-between">
+          <button class="btn btn-warning px-3" onclick="editMealPlan({{ meal_plan.id }})">Edit</button>
+          <button class="btn btn-danger px-3" onclick="deleteMealPlan({{ meal_plan.id }})">Delete</button>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <p>No meal plans available. Create one!</p>
+    {% endfor %}
+  </div>
+</div>
+
+
+
+<!-- Modal for Create/Edit -->
+<div class="modal fade" id="mealPlanModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="mealPlanForm">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create Meal Plan</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" class="form-control mb-3" name="name" placeholder="Meal Plan Name" required>
+                    <!-- Add more fields if needed -->
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Save</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- Meal Plan Modal -->
+<div class="modal fade" id="mealPlanModal" tabindex="-1" aria-labelledby="mealPlanModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="mealPlanModalLabel">Create/Edit Meal Plan</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+          <form id="mealPlanForm" method="POST">
+  {% csrf_token %}
+  <div class="mb-3">
+    <label for="mealPlanName" class="form-label">Meal Plan Name</label>
+    <input type="text" class="form-control" id="mealPlanName" name="name" required>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Select Meals</label><br>
+    {% for meal in meals %}
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" name="meals" value="{{ meal.id }}" id="meal{{ meal.id }}">
+        <label class="form-check-label" for="meal{{ meal.id }}">
+          {{ meal.name }} ({{ meal.calories }} kcal)
+        </label>
+      </div>
+    {% endfor %}
+  </div>
+
+  <button type="submit" class="btn btn-primary">Save</button>
+</form>
+
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-primary" onclick="saveMealPlan()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function openModal() {
+    const myModal = new bootstrap.Modal(document.getElementById('mealPlanModal'));
+    myModal.show();
+  }
+
+  function saveMealPlan() {
+    const name = document.getElementById("mealPlanName").value;
+    alert("Saving Meal Plan: " + name);
+    // TODO: Send data to backend using fetch() or form submit
+  }
+
+  function editMealPlan(id) {
+    alert("Edit Meal Plan ID: " + id);
+    openModal();
+    // TODO: Load data into modal
+  }
+
+  function deleteMealPlan(id) {
+    if (confirm("Are you sure you want to delete Meal Plan ID: " + id + "?")) {
+      alert("Deleted meal plan " + id);
+      // TODO: Delete using fetch/axios
+    }
+  }
+</script>
+
+
+{% endblock %}
