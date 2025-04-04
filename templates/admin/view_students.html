@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h2>All Students</h2>
+  <ul class="list-group">
+    {% for student in students %}
+      <li class="list-group-item">{{ student.first_name }} {{ student.last_name }} - {{ student.email }}</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}
