@@ -93,6 +93,8 @@ class FitnessStats(models.Model):
     total_calories_burned = models.IntegerField(default=0)
     workouts_completed = models.IntegerField(default=0)
     last_updated = models.DateField(auto_now=True)
+    weekly_calorie_goal = models.IntegerField(default=2000)
+    weekly_workout_goal = models.IntegerField(default=3)
 
 class WorkoutProgress(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

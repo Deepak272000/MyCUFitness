@@ -1,23 +1,26 @@
 from django.urls import path
-
 from . import views
-from .views import WorkoutListView, WorkoutDetailView, UserWorkoutTrackingView, AssignWorkoutView, TrainerListView, \
-    workout_list, workout_detail, my_workouts, trainer_dashboard, assign_workout, assign_clients, AssignWorkoutListView, \
-    get_user_reminders
+from .views import create_workout_plan, workout_goals_view, goal_workout_plans
 
 urlpatterns = [
-    path('workouts/', WorkoutListView.as_view(), name='workout-list'),
-    path('workouts/<int:pk>/', WorkoutDetailView.as_view(), name='workout-detail'),
-    path('track-workout/', UserWorkoutTrackingView.as_view(), name='track-workout'),
-    path('trainers/', TrainerListView.as_view(), name='trainer-list'),
-    path('workout-plans/', workout_list, name='workout-list'),
-    path('workout/<int:workout_id>/', workout_detail, name='workout-detail'),
-    path('my-workouts/', my_workouts, name='my-workouts'),
-    path("assign-clients/", assign_clients, name="assign_clients"),
-    path('workouts/assign-list/', AssignWorkoutListView.as_view(), name='assign_workout_list'),
-    path('reminders/', get_user_reminders, name='get_user_reminders'),
-    path("assign-workout/<int:user_id>/", views.assign_workout, name="assign_workout"),
-    path("trainer-dashboard/", trainer_dashboard, name="trainer_dashboard"),
+    path('dashboard/', views.workout_dashboard, name='workout_dashboard'),
+    path("workout-plans/", views.workout_plan_view, name="workout_plans"),
+    path("myplan/", views.my_plan_view, name="my_plan_view"),
+    path("calccalories/", views.calc_calories, name="calc_calories"),
+    path("assign/<int:client_id>/", views.assign_workout_view, name="assign_workout"),
+    path("trainer-dashboard/", views.trainer_dashboard_view, name="trainer_dashboard"),
+    # path("assign/", views.select_student_for_assignment, name="assign_workout_select"),
+    # path("assign/", views.select_student_for_assignment, name="assign_workout"),
+    path("create/", create_workout_plan, name="create_workout_plan"),
+     path("assign-clients/", views.get_assigned_clients, name="assign_clients"),
+    path("api/", views.get_all_workouts, name="api_workouts"),
+    path('filtered-workouts/<int:user_id>/', views.get_filtered_workouts, name='filtered_workouts'),
+    path("goals/", workout_goals_view, name="workout_goals_view"),
+    path("goals/<str:goal_name>/", goal_workout_plans, name="goal_workout_plans"),
+    path('students-progress/', views.students_progress_view, name='students_progress'),
+    path('mark-workout-done/<int:workout_id>/', views.mark_workout_done, name='mark_workout_done'),
+
+
 
 
 

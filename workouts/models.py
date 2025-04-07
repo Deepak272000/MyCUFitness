@@ -1,85 +1,54 @@
-
 from django.db import models
-from django.contrib.auth import get_user_model
-from django.utils.timezone import now, timedelta
+from django.conf import settings
 
-User = get_user_model()
-
-class Workout(models.Model):
-    CATEGORY_CHOICES = [
-        ("Strength", "Strength Training"),
-        ("Fat Burn", "Fat Burn & Weight Loss"),
-        ("Endurance", "Endurance & Stamina Boost"),
-        ("Mobility", "Flexibility & Mobility"),
-        ("Core", "Functional & Core Strength"),
-        ("Personalized", "Personalized Workout & Meal Plan"),
+class WorkoutPlan(models.Model):
+    # workout goals
+    GOAL_CHOICES = [
+        ("weight_loss", "Weight Loss & Fat Burn"),
+        ("muscle_gain", "Muscle Gain & Strength Training"),
+        ("endurance", "Endurance & Stamina Boost"),
+        ("flexibility", "Flexibility & Mobility"),
+        ("core_strength", "Core & Functional Strength"),
+        ("balanced_fitness", "Balanced Fitness & Well-being"),
+        ("athletic_performance", "Athletic Performance & Conditioning"),
+        ("custom_wellness", "Customized & Holistic Wellness"),
+    ]
+    # intensity.
+    INTENSITY_CHOICES = [
+        ('low', 'Low'),
+        ('moderate', 'Moderate'),
+        ('high', 'High'),
     ]
 
-    DIFFICULTY_CHOICES = [
-        ("Beginner", "Beginner"),
-        ("Intermediate", "Intermediate"),
-        ("Advanced", "Advanced"),
-    ]
-
-    title = models.CharField(max_length=255)
-    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
-    difficulty = models.CharField(max_length=20, choices=DIFFICULTY_CHOICES)
-    duration_minutes = models.IntegerField()
-    video_url = models.URLField(blank=True, null=True)
+    name = models.CharField(max_length=150)
+    total_calories = models.FloatField(default=0)
     description = models.TextField()
-    calories_burned_estimate = models.IntegerField()
+    goal = models.CharField(max_length=50, choices=GOAL_CHOICES, default='balanced_fitness')
+    duration_minutes = models.IntegerField(help_text="Total workout duration in minutes")
+    intensity = models.CharField(max_length=20, choices=INTENSITY_CHOICES, default='moderate')
+    created_at = models.DateTimeField(auto_now_add=True)
+    weekly_plan = models.JSONField(default=dict, blank=True, null=True,
+                                   help_text="Full week daily workout plan as JSON")
+    is_active = models.BooleanField(default=True)
+    trainer = models.ForeignKey('Trainer', on_delete=models.CASCADE, related_name='workouts', null=True, blank=True)
 
     def __str__(self):
-        return f"{self.title} ({self.difficulty})"
-
-
-class Exercise(models.Model):
-    workout = models.ForeignKey(Workout, on_delete=models.CASCADE, related_name="exercises")
-    exercise_name = models.CharField(max_length=255)
-    sets = models.IntegerField()
-    reps = models.IntegerField()
-    rest_time_seconds = models.IntegerField()
-    instruction_video = models.URLField(blank=True, null=True)
-
-    def __str__(self):
-        return f"{self.exercise_name} ({self.workout.title})"
-
-
-class UserWorkoutTracking(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="workout_logs")
-    workout = models.ForeignKey(Workout, on_delete=models.CASCADE)
-    date_completed = models.DateTimeField(auto_now_add=True)
-    duration_minutes = models.IntegerField()
-    calories_burned = models.IntegerField()
-    feedback = models.TextField(blank=True, null=True)
-
-    def __str__(self):
-        return f"{self.user.username} - {self.workout.title} ({self.date_completed.date()})"
-
-    @staticmethod
-    def get_weekly_progress(user):
-        last_week = now() - timedelta(days=7)
-        return UserWorkoutTracking.objects.filter(user=user, date_completed__gte=last_week).aggregate(
-            total_calories=models.Sum('calories_burned'),
-            total_duration=models.Sum('duration_minutes')
-        )
+        return self.name
 
 
 class Trainer(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="trainer_profile")
-    assigned_users = models.ManyToManyField(User, related_name="assigned_trainer", blank=True)
-    expertise = models.CharField(max_length=255)
-    certifications = models.TextField(blank=True, null=True)
-    years_of_experience = models.IntegerField(blank=True, null=True)
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,  #
+        on_delete=models.CASCADE,
+        related_name = "trainer"
+    )
+    expertise = models.CharField(max_length=100, default="General")
+    bio = models.TextField(blank=True, null=True)
+    specialization = models.CharField(max_length=100, help_text="E.g., Weight Loss, Muscle Gain")
+    experience_years = models.PositiveIntegerField(default=0)
+    certifications = models.CharField(max_length=255, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Trainer: {self.user.first_name} {self.user.last_name} - {self.expertise}"
+        return self.user.email
 
-class Reminder(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="reminders")
-    message = models.CharField(max_length=255)
-    date_time = models.DateTimeField()
-    is_read = models.BooleanField(default=False)
-
-    def __str__(self):
-        return f"Reminder for {self.user.username} on {self.date_time}"

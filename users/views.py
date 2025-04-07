@@ -1,19 +1,22 @@
 import json
 import logging
-
 import pyotp
 import qrcode
 import io
 import base64
 from allauth.socialaccount.models import SocialAccount
+from django.db.models import Sum
 from django.http import JsonResponse
+
+from meal_plans.models import MealPlan
+from workouts.models import WorkoutPlan
 from .serializers import UserProfileSerializer
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from .forms import ProfileUpdateForm
-from datetime import timedelta
+from datetime import timedelta, date
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django.contrib import messages
 from rest_framework.decorators import api_view, permission_classes
@@ -89,12 +92,10 @@ class VerifyEmailView(APIView):
             return Response({'error': 'Invalid verification link.'}, status=status.HTTP_400_BAD_REQUEST)
 
         if user and default_token_generator.check_token(user, token):
-            user.is_active = True  # ✅ Fix: Activate user
-            user.verification_token = None  # ✅ Clear token
+            user.is_active = True
+            user.verification_token = None
             user.save()
-
-            return Response({'message': 'Email verified successfully. You can now log in.'}, status=status.HTTP_200_OK)
-
+            return redirect('/login/')  #
         return Response({'error': 'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -302,15 +303,21 @@ def login_view(request):
 
         if user is not None:
             login(request, user)
-            if user.is_staff or user.is_superuser:  # Check if the user is an admin
-                return redirect('/admin-dashboard/')
+
+            # Redirect based on user role
+            if user.role == "admin":
+                return redirect("/admin-dashboard/")
+            elif user.role == "trainer":
+                return redirect("/workouts/trainer-dashboard/")
             else:
-             return redirect("dashboard")
+                return redirect("dashboard")  # student dashboard
+
         else:
             messages.error(request, "Invalid email or password.")
             return render(request, "auth/login.html")
 
     return render(request, "auth/login.html")
+
 
 
 
@@ -335,6 +342,17 @@ def register_view(request):
             user.is_active = True  # Require email verification
             user.save()
 
+            profile, created = UserProfile.objects.get_or_create(user=user)
+
+            profile.first_name = user.first_name
+            profile.last_name = user.last_name
+            profile.phone_number = user.phone_number
+            profile.fitness_goals = form_data["fitness_goals"]
+            profile.dietary_preferences = form_data["dietary_preferences"]
+            profile.allergies = ", ".join(form_data["allergies"]) if isinstance(form_data["allergies"], list) else \
+            form_data["allergies"]
+            profile.save()
+
             # ✅ Send only **one** email verification
             send_verification_email(user.email, user)
 
@@ -345,7 +363,7 @@ def register_view(request):
 
     return render(request, "auth/register.html")
 def verification_sent_view(request):
-    return render(request, "auth/verification_sent.html")
+    return render(request, "auth/email_verification.html")
 @login_required
 def set_password_view(request):
     if request.method == "POST":
@@ -531,6 +549,25 @@ class CustomLoginView(LoginView):
 
 
 
-# Utility function to check if user is admin
+@api_view(['GET'])
+def dashboard_data_view(request):
+    # Ensure the user is authenticated
+    if not request.user.is_authenticated:
+        return Response({"detail": "Authentication required."}, status=401)
 
+    user = request.user
+    # Fetch fitness stats for the logged-in user
+    fitness_stats = FitnessStats.objects.filter(user=user).first()
+    calories_burned = fitness_stats.total_calories_burned if fitness_stats else 0
+    workouts_completed = fitness_stats.workouts_completed if fitness_stats else 0
+
+    # Get upcoming reminders
+    today = date.today()
+    upcoming_reminders = list(MealPlanReminder.objects.filter(date__gte=today).values('meal_name', 'scheduled_time', 'date'))
+
+    return Response({
+        'calories_burned': calories_burned,
+        'workouts_completed': workouts_completed,
+        'upcoming_reminders': upcoming_reminders
+    })
 
