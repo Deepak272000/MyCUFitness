@@ -33,3 +33,7 @@ class CustomUserAdmin(UserAdmin):
             return self.add_fieldsets
         return super().get_fieldsets(request, obj)
 admin.site.register(User, CustomUserAdmin)
+from django.contrib import admin
+from .models import Review
+
+admin.site.register(Review)  # ✅ Now you can see reviews in Django Admin

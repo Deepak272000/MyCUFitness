@@ -1,4 +1,7 @@
 {% extends "base.html" %}
+{% load static %}
+
+{% load socialaccount %}
 
 {% block title %}Login - MyCUFitness{% endblock %}
 
@@ -18,19 +21,30 @@
         object-fit: cover;
         z-index: -1;
     }
+    .video-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5); /* 50% opacity dark layer */
+    z-index: 0; /* Above video background but below the login content */
+}
     .login-container {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        height: 100vh;
-        padding: 0 10%;
-        position: relative;
-        z-index: 2;
-    }
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 100vh;
+    padding: 0 10%;
+    position: relative;
+    z-index: 2;
+    background: #000; /* fallback background */
+}
     .login-info {
-        color: white;
-        max-width: 50%;
-    }
+    color: white;
+    max-width: 50%;
+    text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.7);
+}
     .login-box {
         width: 350px;
         padding: 20px;
@@ -67,15 +81,17 @@
 
 <!-- Video Background -->
 <video autoplay loop muted playsinline class="video-background">
-    <source src="/static/videos/login-page-video.mp4" type="video/mp4">
+    <source src="{% static 'videos/login-page-video.mp4' %}" type="video/mp4">
     Your browser does not support the video tag.
 </video>
+
+
 
 <!-- Login Content -->
 <div class="container vh-100 d-flex align-items-center">
     <div class="row w-100">
         <!-- Left Side - Info Section -->
-        <div class="col-md-6 d-flex flex-column justify-content-center text-light">
+        <div class="col-md-6 d-flex flex-column justify-content-center text-light" style="z-index: 3; position: relative;">
             <h1 class="fw-bold">Welcome to MyCUFitness</h1>
             <p>Your journey to a healthier life starts here. Track your workouts, manage your fitness goals, and stay motivated.</p>
         </div>
@@ -103,7 +119,7 @@
                             <input type="checkbox" class="form-check-input" id="remember" name="remember">
                             <label class="form-check-label" for="remember">Remember Me</label>
                         </div>
-                        <a href="{% url 'password_reset' %}" class="text-light small">Forgot Password?</a>
+                        <a href="{% url 'password_reset_request' %}" class="text-light small">Forgot Password?</a>
                     </div>
 
 
@@ -119,12 +135,13 @@
                     <button type="submit" class="btn btn-primary w-100">Login</button>
 
                     <!-- Google Login Button (Reduced gap) -->
-                    <a href="{% url 'social:begin' 'google-oauth2' %}" class="btn btn-danger w-100 mt-2">
+                   <a href="{% provider_login_url 'google' %}?next=/dashboard/" class="btn btn-danger w-100 mt-2">
                         Login with Google
                     </a>
 
+
                     <p class="text-center mt-3">
-                        Don't have an account? <a href='/register/' class="text-light">Register</a>
+                        Don't have an account? <a href="{% url 'register' %}" class="text-light">Register</a>
                     </p>
                 </form>
             </div>

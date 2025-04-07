@@ -1,9 +1,55 @@
 from django import forms
 from django.apps import apps
-from rest_framework import serializers
-from .models import User
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, PasswordResetForm, SetPasswordForm
+from users.models import User
 UserProfile = apps.get_model("users", "UserProfile")
 
+# User Registration Form
+from django import forms
+from users.models import User
+
+
+class RegistrationForm(forms.ModelForm):
+    password1 = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}))
+    password2 = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}))
+
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'email', 'phone_number', 'role', 'password1', 'password2']
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password1 = cleaned_data.get("password1")
+        password2 = cleaned_data.get("password2")
+
+        if password1 and password2 and password1 != password2:
+            raise forms.ValidationError("Passwords must match!")
+
+        return cleaned_data
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.set_password(self.cleaned_data["password1"])  # Ensure password is hashed
+        if commit:
+            user.save()
+        return user
+
+
+# User Login Form
+class LoginForm(AuthenticationForm):
+    username = forms.EmailField(widget=forms.EmailInput(attrs={'class': 'form-control'}))
+    password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}))
+
+# Password Reset Request Form
+class PasswordResetRequestForm(PasswordResetForm):
+    email = forms.EmailField(widget=forms.EmailInput(attrs={'class': 'form-control'}))
+
+# Password Reset Confirm Form
+class CustomSetPasswordForm(SetPasswordForm):
+    new_password1 = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}))
+    new_password2 = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}))
+
+# Profile Update Form
 class ProfileUpdateForm(forms.ModelForm):
     fitness_goals = forms.ChoiceField(
         choices=[
@@ -50,11 +96,35 @@ class ProfileUpdateForm(forms.ModelForm):
         required=False,
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Specify other allergy', 'id': 'other-allergy-input', 'style': 'display: none;'})
     )
+    profile_picture = forms.ImageField(required=False)
 
     class Meta:
         model = UserProfile
-        fields = ['profile_picture','activity_level','first_name','last_name','dob','phone_number','weight','height','bmi', 'fitness_goals', 'dietary_preferences', 'allergies', 'other_allergy']
+        fields = ['profile_picture', 'activity_level', 'first_name', 'last_name', 'dob', 'phone_number', 'weight', 'height', 'bmi', 'fitness_goals', 'dietary_preferences', 'allergies', 'other_allergy']
 
-        profile_picture = forms.ImageField(required=False)
+# Custom Login Form with Remember Me Functionality
+from allauth.account.forms import LoginForm
+class CustomLoginForm(LoginForm):
+    remember = forms.BooleanField(
+        required=False,
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+    )
 
+    def __init__(self, *args, **kwargs):
+        super(CustomLoginForm, self).__init__(*args, **kwargs)
+        self.fields['login'].widget.attrs.update({
+            'class': 'form-control',
+            'placeholder': 'Email or Username'
+        })
+        self.fields['password'].widget.attrs.update({
+            'class': 'form-control',
+            'placeholder': 'Password'
+        })
 
+    def login(self, *args, **kwargs):
+        remember = self.cleaned_data.get('remember')
+        if not remember:
+            self.request.session.set_expiry(0)
+        else:
+            self.request.session.set_expiry(1209600)
+        return super(CustomLoginForm, self).login(*args, **kwargs)

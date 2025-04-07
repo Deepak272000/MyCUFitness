@@ -1,14 +1,19 @@
-{% extends "base.html" %} {% load static %}
+{% extends "base.html" %}
+{% load static %}
 {% block title %}Dashboard - MyCUFitness{% endblock %}
 
 {% block content %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <div class="container mt-4">
+<div class="container mt-4">
+    <!-- Email Verification Notice -->
     {% if not user.email_verified %}
         <div class="alert alert-warning text-center">
             Your email is not verified. <a href='/email-verification/'>Click here</a> to verify.
         </div>
     {% endif %}
+
+    <!-- Security & 2FA -->
     <div class="card mb-3">
         <div class="card-header bg-dark text-white">Security</div>
         <div class="card-body text-center">
@@ -42,7 +47,7 @@
         </div>
     </div>
 
-    <!-- Health Metrics -->
+    <!-- Health Metrics & Goals -->
     <div class="row">
         <div class="col-md-6">
             <div class="card mb-3">
@@ -50,17 +55,12 @@
                 <div class="card-body">
                     <p><strong>Weight:</strong> {{ user_profile.weight|default:"Not Set" }} kg</p>
                     <p><strong>Height:</strong> {{ user_profile.height|default:"Not Set" }} cm</p>
-                    {% if user_profile.bmi %}
-                        <p><strong>BMI:</strong> {{ user_profile.bmi }}</p>
-                    {% else %}
-                        <p><strong>BMI:</strong> Not Calculated</p>
-                    {% endif %}
+                    <p><strong>BMI:</strong> {{ user_profile.bmi|default:"Not Calculated" }}</p>
                     <p><strong>Activity Level:</strong> {{ user_profile.activity_level|default:"Not set" }}</p>
                 </div>
             </div>
         </div>
 
-        <!-- Fitness Goals -->
         <div class="col-md-6">
             <div class="card mb-3">
                 <div class="card-header bg-success text-white">Your Fitness Goals</div>
@@ -92,12 +92,12 @@
         </div>
     </div>
 
-    <!-- Weekly Progress Section -->
+    <!-- Weekly Progress (Dynamic Update) -->
     <div class="card mb-3">
         <div class="card-header bg-info text-white">Weekly Progress</div>
         <div class="card-body">
-            <p><strong>Calories Burned:</strong> {{ weekly_progress.calories_burned|default:0 }} kcal</p>
-            <p><strong>Workouts Completed:</strong> {{ weekly_progress.workouts_completed|default:0 }}</p>
+            <p><strong>Calories Burned:</strong> <span id="caloriesBurned">Loading...</span> </p>
+            <p><strong>Workouts Completed:</strong> <span id="workoutsCompleted">Loading...</span></p>
         </div>
     </div>
 
@@ -105,22 +105,35 @@
     <div class="card mb-3">
         <div class="card-header bg-dark text-white">Upcoming Workout & Meal Plan Reminders</div>
         <div class="card-body">
-            {% if upcoming_reminders %}
-                <ul>
-                    {% for reminder in upcoming_reminders %}
-                        <li>{{ reminder.meal_name }} - {{ reminder.scheduled_time }}</li>
-                    {% endfor %}
-                </ul>
-            {% else %}
-                <p>No upcoming reminders.</p>
-            {% endif %}
+            <ul id="reminderList"><li>Loading...</li></ul>
         </div>
     </div>
-
-    <!-- Buttons -->
-    <div class="d-flex justify-content-between">
-        <a href="{% url 'profile' %}" class="btn btn-primary">Update Profile</a>
-        <a href="{% url 'workout_plans' %}" class="btn btn-success">View Workout Plans</a>
-    </div>
 </div>
+
+<!-- JavaScript for Dynamic Data Fetching -->
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+    fetch('/api/users/dashboard-data/')
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById("caloriesBurned").innerText = data.calories_burned + " kcal";
+        document.getElementById("workoutsCompleted").innerText = data.workouts_completed;
+
+        const reminderList = document.getElementById("reminderList");
+        reminderList.innerHTML = "";
+
+        if (data.upcoming_reminders.length === 0) {
+            reminderList.innerHTML = "<li>No upcoming reminders.</li>";
+        } else {
+            data.upcoming_reminders.forEach(reminder => {
+                const li = document.createElement("li");
+                li.innerText = `${reminder.meal_name} at ${reminder.scheduled_time}`;
+                reminderList.appendChild(li);
+            });
+        }
+    });
+});
+</script>
+
 {% endblock %}

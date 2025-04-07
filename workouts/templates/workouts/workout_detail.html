@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>{{ plan.name }}</h2>
+<p>{{ plan.description }}</p>
+<p>Duration: {{ plan.duration_weeks }} weeks</p>
+<p>Difficulty: {{ plan.difficulty_level }}</p>
+
+<h3>Workouts</h3>
+<ul>
+    {% for workout in workouts %}
+        <li>{{ workout.name }} - {{ workout.day_of_week }}</li>
+    {% endfor %}
+</ul>
+{% endblock %}
