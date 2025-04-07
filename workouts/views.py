@@ -316,6 +316,9 @@ def students_progress_view(request):
         students = User.objects.filter(role='student', userprofile__assigned_trainer=trainer_obj)
         progress_data = []
 
+        today = date.today()
+        start_of_week = today - timedelta(days=today.weekday())
+
         for student in students:
             try:
                 profile = UserProfile.objects.get(user=student)
@@ -323,10 +326,38 @@ def students_progress_view(request):
             except (UserProfile.DoesNotExist, FitnessStats.DoesNotExist):
                 continue
 
+            # Weekly calorie data
+            weekly_qs = WorkoutProgress.objects.filter(
+                user=student,
+                date__range=(start_of_week, today)
+            )
+
+            weekly_calories = {
+                (start_of_week + timedelta(days=i)).strftime('%A'): 0
+                for i in range(7)
+            }
+
+            for entry in weekly_qs:
+                weekday = entry.date.strftime('%A')
+                weekly_calories[weekday] += entry.calories_burned
+
+            # Badge logic
+            badges = []
+            if stats:
+                if stats.total_calories_burned >= 2000:
+                    badges.append("🔥 Calorie Crusher")
+                if stats.workouts_completed >= 5:
+                    badges.append("🏋️ Workout Warrior")
+                if stats.workouts_completed >= stats.weekly_workout_goal:
+                    badges.append("✅ Goal Smasher")
+
             progress_data.append({
                 'student': student,
                 'profile': profile,
                 'stats': stats,
+                'weekly_days': list(weekly_calories.keys()),
+                'weekly_calories_data': list(weekly_calories.values()),
+                'badges': badges,
             })
 
         context = {
@@ -336,7 +367,6 @@ def students_progress_view(request):
         return render(request, 'workouts/students_progress.html', context)
 
     return redirect('dashboard')
-
 
 from django.shortcuts import redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
