@@ -5,107 +5,90 @@
 {% block content %}
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<div class="container mt-4">
-    <!-- Email Verification Notice -->
+<div class="container mt-3">
+    <!-- Top Alert -->
     {% if not user.email_verified %}
         <div class="alert alert-warning text-center">
-            Your email is not verified. <a href='/email-verification/'>Click here</a> to verify.
-        </div>
+    Your email is not verified.
+    <a href="{% url 'resend_verification_email' %}">Click here</a> to resend the verification email.
+</div>
     {% endif %}
 
-    <!-- Security & 2FA -->
-    <div class="card mb-3">
+    <!-- 🔐 Security Info (Full width) -->
+    <div class="card mb-4 shadow-sm">
         <div class="card-header bg-dark text-white">Security</div>
-        <div class="card-body text-center">
-            <p><strong>Two-Factor Authentication:</strong> {% if user.two_factor_enabled %} Enabled {% else %} Disabled {% endif %}</p>
-            <a href="{% url 'enable_2fa' %}" class="btn btn-warning">Manage 2FA</a>
+        <div class="card-body d-flex justify-content-between align-items-center py-2">
+            <span><strong>2FA:</strong> {% if user.two_factor_enabled %} Enabled {% else %} Disabled {% endif %}</span>
+            <a href="{% url 'enable_2fa' %}" class="btn btn-warning btn-sm">Manage 2FA</a>
         </div>
     </div>
 
-    <!-- Profile Header -->
-    <div class="d-flex align-items-center mb-3">
-        <div class="profile-img-container">
-            {% if user_profile.profile_picture %}
-                <div style="width: 100px; height: 100px; overflow: hidden;">
-                <img src="{{ profile_picture }}" alt="Profile Picture">
-                </div>
-            {% else %}
-                <img src="{{ MEDIA_URL }}profile_pics/default.jpg" alt="Default Profile Picture">
-            {% endif %}
-        </div>
-        <h2 class="ms-3">Welcome, {{ user_profile.first_name|default:user.email }}!</h2>
-    </div>
+    <!-- 🧱 Main Dashboard Grid -->
+    <div class="row g-3">
+        <!-- Left Column -->
+        <div class="col-md-7">
+            <!-- Profile Card -->
+            <div class="card shadow-sm p-3 d-flex align-items-center flex-row mb-3">
+                <img src="{{ profile_picture }}" alt="Profile" class="rounded-circle me-3" width="60" height="60">
+                <h5 class="mb-0">Welcome, {{ user_profile.first_name|default:user.email }}!</h5>
+            </div>
 
-    <p>Your personalized fitness dashboard to track your progress and stay motivated.</p>
-
-    <!-- Personal Info -->
-    <div class="card mb-3">
-        <div class="card-header bg-secondary text-white">Your Personal Info</div>
-        <div class="card-body">
-            <p><strong>Email:</strong> {{ user.email }}</p>
-            <p><strong>Phone Number:</strong> {{ user_profile.phone_number|default:"Not Provided" }}</p>
-        </div>
-    </div>
-
-    <!-- Health Metrics & Goals -->
-    <div class="row">
-        <div class="col-md-6">
-            <div class="card mb-3">
-                <div class="card-header bg-primary text-white">Your Health Metrics</div>
+            <!-- Health Metrics -->
+            <div class="card mb-3 shadow-sm">
+                <div class="card-header bg-primary text-white">Health Metrics</div>
                 <div class="card-body">
-                    <p><strong>Weight:</strong> {{ user_profile.weight|default:"Not Set" }} kg</p>
-                    <p><strong>Height:</strong> {{ user_profile.height|default:"Not Set" }} cm</p>
-                    <p><strong>BMI:</strong> {{ user_profile.bmi|default:"Not Calculated" }}</p>
-                    <p><strong>Activity Level:</strong> {{ user_profile.activity_level|default:"Not set" }}</p>
+                    <p><strong>Weight:</strong> {{ user_profile.weight }} kg</p>
+                    <p><strong>Height:</strong> {{ user_profile.height }} cm</p>
+                    <p><strong>BMI:</strong> {{ user_profile.bmi }}</p>
+                    <p><strong>Activity Level:</strong> {{ user_profile.activity_level }}</p>
+                </div>
+            </div>
+
+            <!-- Personal Info -->
+            <div class="card mb-3 shadow-sm">
+                <div class="card-header bg-secondary text-white">Personal Info</div>
+                <div class="card-body">
+                    <p><strong>Email:</strong> {{ user.email }}</p>
+                    <p><strong>Phone:</strong> {{ user_profile.phone_number }}</p>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-6">
-            <div class="card mb-3">
-                <div class="card-header bg-success text-white">Your Fitness Goals</div>
+        <!-- Right Column -->
+        <div class="col-md-5">
+            <!-- Goals -->
+            <div class="card mb-3 shadow-sm">
+                <div class="card-header bg-success text-white">Fitness Goals</div>
                 <div class="card-body">
-                    <p>{{ user_profile.fitness_goals|default:"No goal set" }}</p>
+                    <p>{{ user_profile.fitness_goals }}</p>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Dietary Preferences & Allergies -->
-    <div class="row">
-        <div class="col-md-6">
-            <div class="card mb-3">
-                <div class="card-header bg-warning text-dark">Dietary Preferences</div>
+            <!-- Diet & Allergies -->
+            <div class="card mb-3 shadow-sm">
+                <div class="card-header bg-warning text-dark">Diet & Allergies</div>
                 <div class="card-body">
-                    <p>{{ user_profile.dietary_preferences|default:"Not specified" }}</p>
+                    <p><strong>Diet:</strong> {{ user_profile.dietary_preferences }}</p>
+                    <p><strong>Allergies:</strong> {{ user_profile.allergies }}</p>
                 </div>
             </div>
-        </div>
 
-        <div class="col-md-6">
-            <div class="card mb-3">
-                <div class="card-header bg-danger text-white">Allergies</div>
+            <!-- Weekly Progress -->
+            <div class="card mb-3 shadow-sm">
+                <div class="card-header bg-info text-white">Weekly Progress</div>
                 <div class="card-body">
-                    <p>{{ user_profile.allergies|default:"No known allergies" }}</p>
+                    <p><strong>Calories:</strong> <span id="caloriesBurned">Loading...</span></p>
+                    <p><strong>Workouts:</strong> <span id="workoutsCompleted">Loading...</span></p>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Weekly Progress (Dynamic Update) -->
-    <div class="card mb-3">
-        <div class="card-header bg-info text-white">Weekly Progress</div>
-        <div class="card-body">
-            <p><strong>Calories Burned:</strong> <span id="caloriesBurned">Loading...</span> </p>
-            <p><strong>Workouts Completed:</strong> <span id="workoutsCompleted">Loading...</span></p>
-        </div>
-    </div>
-
-    <!-- Upcoming Workout & Meal Plan Reminders -->
-    <div class="card mb-3">
-        <div class="card-header bg-dark text-white">Upcoming Workout & Meal Plan Reminders</div>
-        <div class="card-body">
-            <ul id="reminderList"><li>Loading...</li></ul>
+            <!-- Reminders -->
+            <div class="card mb-3 shadow-sm">
+                <div class="card-header bg-dark text-white">Reminders</div>
+                <div class="card-body">
+                    <ul id="reminderList" class="mb-0"><li>Loading...</li></ul>
+                </div>
+            </div>
         </div>
     </div>
 </div>

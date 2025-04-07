@@ -40,9 +40,13 @@ body {
 body, html {
     height: 100%;
     margin: 0;
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
+    font-family: 'Ubuntu', sans-serif;
+    background-color: transparent; /* or remove this line entirely */
+    overflow-x: hidden;
+    position: relative;
+    z-index: 1;
 }
+
 
 /* ===== Navbar Styles ===== */
 .navbar {
@@ -85,11 +89,12 @@ body, html {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
+    width: 100vw;
     height: 100vh;
     object-fit: cover;
-    z-index: -1;
+    z-index: -1; /* stays behind all content */
 }
+
 
 /* ===== Chatbot Floating Button ===== */
 .chatbot-icon {
@@ -200,4 +205,8 @@ button:hover {
         width: 90%;
         height: 400px;
     }
+}
+
+.hero-content, .login-form {
+    background-color: rgba(0, 0, 0, 0.6); /* Dark translucent overlay */
 }
